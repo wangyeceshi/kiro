@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>智慧农业管理平台</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Leaflet 地图库 (开源免费) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
+
 <body>
     <!-- 侧边栏 -->
     <div class="sidebar">
@@ -21,7 +27,7 @@
             </a>
             <div class="nav-group">
                 <div class="nav-group-title">农田信息管理</div>
-                <a href="#image-reconstruction" class="nav-item" onclick="showPage('image-reconstruction')">
+                <a href="#image-reconstruction" class="nav-item" onclick="showPage('image-reconstruction', this)">
                     <i class="fas fa-image"></i>
                     <span>农田影像重建</span>
                 </a>
@@ -124,6 +130,68 @@
             </div>
         </div>
 
+        <!-- AI智能助手 -->
+        <div class="ai-assistant" id="aiAssistant">
+            <div class="ai-header">
+                <i class="fas fa-robot"></i>
+                <span>AI智能助手</span>
+                <button class="ai-close" onclick="toggleAI()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="ai-chat" id="aiChat">
+                <div class="ai-message bot">
+                    <div class="ai-avatar"><i class="fas fa-robot"></i></div>
+                    <div class="ai-content">
+                        <p>您好！我是智慧农业AI助手，可以帮您：</p>
+                        <ul>
+                            <li>查询作业数据和统计</li>
+                            <li>分析农田状况</li>
+                            <li>生成作业建议</li>
+                            <li>设备故障诊断</li>
+                        </ul>
+                        <p>请问有什么可以帮您？</p>
+                    </div>
+                </div>
+            </div>
+            <div class="ai-input-area">
+                <input type="text" id="aiInput" placeholder="输入您的问题..." onkeypress="handleAIEnter(event)">
+                <button onclick="sendAIMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+            <div class="ai-quick-actions">
+                <button onclick="quickAsk('今日作业统计')">今日统计</button>
+                <button onclick="quickAsk('设备状态')">设备状态</button>
+                <button onclick="quickAsk('天气建议')">天气建议</button>
+            </div>
+        </div>
+
+        <!-- AI助手触发按钮 -->
+        <button class="ai-trigger" onclick="toggleAI()">
+            <i class="fas fa-robot"></i>
+            <span class="ai-badge">AI</span>
+        </button>
+
+        <!-- 语音播报控制 -->
+        <button class="voice-control" onclick="toggleVoice()" title="语音播报">
+            <i class="fas fa-volume-up" id="voiceIcon"></i>
+        </button>
+
+        <!-- 快捷操作面板 -->
+        <div class="quick-panel" id="quickPanel">
+            <button class="quick-btn" onclick="quickExport()" title="快速导出">
+                <i class="fas fa-download"></i>
+            </button>
+            <button class="quick-btn" onclick="quickPrint()" title="打印报告">
+                <i class="fas fa-print"></i>
+            </button>
+            <button class="quick-btn" onclick="quickShare()" title="分享">
+                <i class="fas fa-share-alt"></i>
+            </button>
+            <button class="quick-btn" onclick="toggleFullscreen()" title="全屏">
+                <i class="fas fa-expand"></i>
+            </button>
+        </div>
+
         <!-- 页面内容容器 -->
         <div class="content-wrapper">
             <!-- 控制台 -->
@@ -168,15 +236,37 @@
                 </div>
 
                 <div class="dashboard-grid">
-                    <div class="dashboard-card">
-                        <h3>实时作业监控</h3>
-                        <div id="realtime-map" class="map-container">
-                            <div class="map-placeholder">
-                                <i class="fas fa-map-marked-alt"></i>
-                                <p>实时地图加载中...</p>
+                    <div class="dashboard-card full-width">
+                        <div class="card-header">
+                            <h3>实时作业监控</h3>
+                            <div class="map-controls">
+                                <button class="control-btn" onclick="toggleMapLayer('satellite')">
+                                    <i class="fas fa-satellite"></i> 卫星图
+                                </button>
+                                <button class="control-btn active" onclick="toggleMapLayer('terrain')">
+                                    <i class="fas fa-map"></i> 地形图
+                                </button>
+                                <button class="control-btn" onclick="toggleMapLayer('hybrid')">
+                                    <i class="fas fa-layer-group"></i> 混合
+                                </button>
+                                <button class="control-btn" onclick="refreshMap()">
+                                    <i class="fas fa-sync"></i> 刷新
+                                </button>
                             </div>
                         </div>
+                        <div id="realtime-map" class="map-container interactive" style="height: 500px;">
+                            <!-- 真实地图将在这里加载 -->
+                        </div>
+                        <div
+                            style="margin-top: 10px; padding: 10px; background: #e8f5e9; border-radius: 5px; font-size: 0.9rem;">
+                            <strong>🗺️ 真实地图已启用</strong> - 使用 OpenStreetMap（免费开源）|
+                            <span style="color: #666;">位置：天津市宁河区农田 (117.82°E, 39.33°N)</span> |
+                            <span style="color: #666;">可拖动、缩放、点击设备查看详情</span>
+                        </div>
                     </div>
+                </div>
+
+                <div class="dashboard-grid-3">
                     <div class="dashboard-card">
                         <h3>最近作业记录</h3>
                         <div class="recent-operations">
@@ -207,6 +297,162 @@
                                 </div>
                                 <span class="status completed">已完成</span>
                             </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3>天气信息</h3>
+                        <div class="weather-widget">
+                            <div class="weather-main">
+                                <div class="weather-icon">
+                                    <i class="fas fa-sun"></i>
+                                </div>
+                                <div class="weather-temp">
+                                    <span class="temp">25°C</span>
+                                    <span class="desc">晴天</span>
+                                </div>
+                            </div>
+                            <div class="weather-details">
+                                <div class="weather-item">
+                                    <i class="fas fa-wind"></i>
+                                    <span>风速: 2.3 m/s</span>
+                                </div>
+                                <div class="weather-item">
+                                    <i class="fas fa-tint"></i>
+                                    <span>湿度: 65%</span>
+                                </div>
+                                <div class="weather-item">
+                                    <i class="fas fa-eye"></i>
+                                    <span>能见度: 优</span>
+                                </div>
+                                <div class="weather-item">
+                                    <i class="fas fa-cloud-rain"></i>
+                                    <span>降雨: 0mm</span>
+                                </div>
+                            </div>
+                            <div class="weather-suggestion">
+                                <i class="fas fa-check-circle"></i>
+                                <span>适宜作业</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3>今日统计</h3>
+                        <div class="today-stats">
+                            <div class="stat-item-small">
+                                <div class="stat-icon-small"
+                                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                    <i class="fas fa-tasks"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <span class="stat-label">完成作业</span>
+                                    <span class="stat-value">42 次</span>
+                                </div>
+                            </div>
+                            <div class="stat-item-small">
+                                <div class="stat-icon-small"
+                                    style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                                    <i class="fas fa-map"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <span class="stat-label">作业面积</span>
+                                    <span class="stat-value">856 亩</span>
+                                </div>
+                            </div>
+                            <div class="stat-item-small">
+                                <div class="stat-icon-small"
+                                    style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <span class="stat-label">作业时长</span>
+                                    <span class="stat-value">12.5 小时</span>
+                                </div>
+                            </div>
+                            <div class="stat-item-small">
+                                <div class="stat-icon-small"
+                                    style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                                    <i class="fas fa-leaf"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <span class="stat-label">节省成本</span>
+                                    <span class="stat-value">¥2,850</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid-2">
+                    <div class="dashboard-card">
+                        <h3>设备健康状态</h3>
+                        <div class="device-health">
+                            <div class="health-item">
+                                <div class="health-header">
+                                    <span class="device-name">T40-01 农业无人机</span>
+                                    <span class="health-status excellent">优秀</span>
+                                </div>
+                                <div class="health-bars">
+                                    <div class="health-bar">
+                                        <label>电池健康</label>
+                                        <div class="bar">
+                                            <div class="fill" style="width: 95%; background: #2ecc71;"></div>
+                                        </div>
+                                        <span>95%</span>
+                                    </div>
+                                    <div class="health-bar">
+                                        <label>电机状态</label>
+                                        <div class="bar">
+                                            <div class="fill" style="width: 92%; background: #2ecc71;"></div>
+                                        </div>
+                                        <span>92%</span>
+                                    </div>
+                                    <div class="health-bar">
+                                        <label>传感器</label>
+                                        <div class="bar">
+                                            <div class="fill" style="width: 98%; background: #2ecc71;"></div>
+                                        </div>
+                                        <span>98%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="health-item">
+                                <div class="health-header">
+                                    <span class="device-name">T40-02 农业无人机</span>
+                                    <span class="health-status good">良好</span>
+                                </div>
+                                <div class="health-bars">
+                                    <div class="health-bar">
+                                        <label>电池健康</label>
+                                        <div class="bar">
+                                            <div class="fill" style="width: 88%; background: #f39c12;"></div>
+                                        </div>
+                                        <span>88%</span>
+                                    </div>
+                                    <div class="health-bar">
+                                        <label>电机状态</label>
+                                        <div class="bar">
+                                            <div class="fill" style="width: 85%; background: #f39c12;"></div>
+                                        </div>
+                                        <span>85%</span>
+                                    </div>
+                                    <div class="health-bar">
+                                        <label>传感器</label>
+                                        <div class="bar">
+                                            <div class="fill" style="width: 90%; background: #2ecc71;"></div>
+                                        </div>
+                                        <span>90%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3>作业效率分析</h3>
+                        <div class="efficiency-chart">
+                            <canvas id="efficiencyChart" width="500" height="250"></canvas>
                         </div>
                     </div>
                 </div>
@@ -342,13 +588,12 @@
                             <button class="tool-btn" title="自动检测"><i class="fas fa-magic"></i></button>
                             <button class="tool-btn" title="测量"><i class="fas fa-ruler"></i></button>
                             <button class="tool-btn" title="标注"><i class="fas fa-map-pin"></i></button>
+                            <div class="tool-divider"></div>
+                            <button class="tool-btn map-layer-btn" id="streetMapBtn" title="街道地图"><i class="fas fa-map"></i></button>
+                            <button class="tool-btn map-layer-btn" id="satelliteMapBtn" title="卫星地图"><i class="fas fa-satellite"></i></button>
                         </div>
-                        <div class="map-container large">
-                            <div class="map-placeholder">
-                                <i class="fas fa-map"></i>
-                                <p>地图加载中...</p>
-                                <small>支持手动绘制或AI自动识别农田边界</small>
-                            </div>
+                        <div id="farmland-planning-map" class="map-container large" style="height: 600px;">
+                            <!-- 真实地图将在这里加载 -->
                         </div>
                     </div>
                     <div class="info-panel">
@@ -559,1492 +804,1545 @@
                             <div class="map-overlay">
                                 <div class="legend">
                                     <h5>高程图例（米）</h5>
-                                    <div class="legend-item"><span class="color" style="background: #d73027;"></span> > 0.5</div>
-                                    <div class="legend-item"><span class="color" style="background: #fc8d59;"></span> 0.3 - 0.5</div>
-                                    <div class="legend-item"><span class="color" style="background: #fee090;"></span> 0.1 - 0.3</div>
-                                    <div class="legend-item"><span class="color" style="background: #e0f3f8;"></span> -0.1 - 0.1</div>
-                                    <div class="legend-item"><span class="color" style="background: #91bfdb;"></span> -0.3 - -0.1</div>
-                                    <div class="legend-item"><span class="color" style="background: #4575b4;"></span> < -0.3</div>
+                                    <div class="legend-item"><span class="color" style="background: #d73027;"></span> >
+                                        0.5
+                                    </div>
+                                    <div class="legend-item"><span class="color" style="background: #fc8d59;"></span>
+                                        0.3 -
+                                        0.5</div>
+                                    <div class="legend-item"><span class="color" style="background: #fee090;"></span>
+                                        0.1 -
+                                        0.3</div>
+                                    <div class="legend-item"><span class="color" style="background: #e0f3f8;"></span>
+                                        -0.1 -
+                                        0.1</div>
+                                    <div class="legend-item"><span class="color" style="background: #91bfdb;"></span>
+                                        -0.3 -
+                                        -0.1</div>
+                                    <div class="legend-item"><span class="color" style="background: #4575b4;"></span>
+                                        < -0.3</div>
+                                    </div>
                                 </div>
-                            </div>
-                            <canvas id="levelingCanvas" width="800" height="600"></canvas>
-                        </div>
-                    </div>
-                    <div class="analysis-right">
-                        <div class="panel-card">
-                            <h4>监测参数</h4>
-                            <div class="form-group">
-                                <label>选择地块</label>
-                                <select class="form-control">
-                                    <option>A区-01号地块</option>
-                                    <option>A区-02号地块</option>
-                                    <option>B区-01号地块</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>分析精度</label>
-                                <select class="form-control">
-                                    <option>高精度（5cm）</option>
-                                    <option selected>标准（10cm）</option>
-                                    <option>快速（20cm）</option>
-                                </select>
-                            </div>
-                            <button class="btn-success btn-block">生成高程图</button>
-                        </div>
-                        <div class="panel-card">
-                            <h4>分析结果</h4>
-                            <div class="result-item">
-                                <label>最大高差</label>
-                                <span class="value-large">0.68 米</span>
-                            </div>
-                            <div class="result-item">
-                                <label>平均高差</label>
-                                <span class="value-large">0.23 米</span>
-                            </div>
-                            <div class="result-item">
-                                <label>需平整面积</label>
-                                <span class="value-large">12.3 亩</span>
-                            </div>
-                            <div class="result-item">
-                                <label>建议平整区域</label>
-                                <span class="value-large">东北角、西南角</span>
+                                <div id="leveling-map" style="height: 600px; width: 100%;"></div>
                             </div>
                         </div>
-                        <div class="panel-card">
-                            <h4>操作建议</h4>
-                            <div class="suggestion-list">
-                                <div class="suggestion-item">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                    <p>东北角区域高差超过0.5米，建议优先平整</p>
+                        <div class="analysis-right">
+                            <div class="panel-card">
+                                <h4>监测参数</h4>
+                                <div class="form-group">
+                                    <label>选择地块</label>
+                                    <select class="form-control">
+                                        <option>A区-01号地块</option>
+                                        <option>A区-02号地块</option>
+                                        <option>B区-01号地块</option>
+                                    </select>
                                 </div>
-                                <div class="suggestion-item">
-                                    <i class="fas fa-info-circle"></i>
-                                    <p>西南角存在低洼区域，注意排水</p>
+                                <div class="form-group">
+                                    <label>分析精度</label>
+                                    <select class="form-control" id="leveling-precision">
+                                        <option>高精度（5cm）</option>
+                                        <option selected>标准（10cm）</option>
+                                        <option>快速（20cm）</option>
+                                    </select>
+                                </div>
+                                <button class="btn-success btn-block" onclick="generateElevationMap()">生成高程图</button>
+                            </div>
+                            <div class="panel-card">
+                                <h4>分析结果</h4>
+                                <div class="result-item">
+                                    <label>最大高差</label>
+                                    <span class="value-large">0.68 米</span>
+                                </div>
+                                <div class="result-item">
+                                    <label>平均高差</label>
+                                    <span class="value-large">0.23 米</span>
+                                </div>
+                                <div class="result-item">
+                                    <label>需平整面积</label>
+                                    <span class="value-large">12.3 亩</span>
+                                </div>
+                                <div class="result-item">
+                                    <label>建议平整区域</label>
+                                    <span class="value-large">东北角、西南角</span>
                                 </div>
                             </div>
-                            <button class="btn-primary btn-block">生成平整方案</button>
-                            <button class="btn-secondary btn-block">导出报告</button>
+                            <div class="panel-card">
+                                <h4>操作建议</h4>
+                                <div class="suggestion-list">
+                                    <div class="suggestion-item">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <p>东北角区域高差超过0.5米，建议优先平整</p>
+                                    </div>
+                                    <div class="suggestion-item">
+                                        <i class="fas fa-info-circle"></i>
+                                        <p>西南角存在低洼区域，注意排水</p>
+                                    </div>
+                                </div>
+                                <button class="btn-primary btn-block" onclick="generateLevelingPlan()">生成平整方案</button>
+                                <button class="btn-secondary btn-block" onclick="exportLevelingReport()">导出报告</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 出苗分析 -->
-            <div id="seedling-page" class="page">
-                <div class="page-header">
-                    <h3>出苗分析</h3>
-                    <button class="btn-primary" onclick="analyzeSeedling()">
-                        <i class="fas fa-play"></i> 开始分析
-                    </button>
-                </div>
-                <div class="analysis-container">
-                    <div class="analysis-left">
-                        <div class="image-viewer">
-                            <canvas id="seedlingCanvas" width="800" height="600"></canvas>
+                <!-- 出苗分析 -->
+                <div id="seedling-page" class="page">
+                    <div class="page-header">
+                        <h3>出苗分析</h3>
+                        <button class="btn-primary" onclick="analyzeSeedling()">
+                            <i class="fas fa-play"></i> 开始分析
+                        </button>
+                    </div>
+                    <div class="analysis-container">
+                        <div class="analysis-left">
+                            <div class="image-viewer">
+                                <div id="seedling-map" style="height: 600px; width: 100%;"></div>
+                            </div>
                             <div class="viewer-tools">
-                                <button class="tool-btn"><i class="fas fa-search-plus"></i></button>
-                                <button class="tool-btn"><i class="fas fa-search-minus"></i></button>
-                                <button class="tool-btn"><i class="fas fa-sync"></i></button>
+                                <button class="tool-btn" onclick="seedlingZoomIn()" title="放大"><i class="fas fa-search-plus"></i></button>
+                                <button class="tool-btn" onclick="seedlingZoomOut()" title="缩小"><i class="fas fa-search-minus"></i></button>
+                                <button class="tool-btn" onclick="seedlingResetView()" title="重置视图"><i class="fas fa-sync"></i></button>
+                                <button class="tool-btn" onclick="toggleSeedlingMarkers()" title="显示/隐藏标记"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+                        <div class="analysis-right">
+                            <div class="panel-card">
+                                <h4>分析设置</h4>
+                                <div class="form-group">
+                                    <label>作物类型</label>
+                                    <select class="form-control" id="seedling-crop-type">
+                                        <option selected>棉花</option>
+                                        <option>玉米</option>
+                                        <option>大豆</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>理论株距（cm）</label>
+                                    <input type="number" class="form-control" id="seedling-plant-spacing" value="30">
+                                </div>
+                                <div class="form-group">
+                                    <label>理论行距（cm）</label>
+                                    <input type="number" class="form-control" id="seedling-row-spacing" value="76">
+                                </div>
+                                <div class="form-group">
+                                    <label>识别灵敏度</label>
+                                    <select class="form-control" id="seedling-sensitivity">
+                                        <option>高</option>
+                                        <option selected>中</option>
+                                        <option>低</option>
+                                    </select>
+                                </div>
+                                <button class="btn-success btn-block" onclick="startSeedlingRecognition()">开始识别</button>
+                            </div>
+                            <div class="panel-card">
+                                <h4>出苗统计</h4>
+                                <div class="result-item">
+                                    <label>实际出苗数</label>
+                                    <span class="value-large">8,456 株</span>
+                                </div>
+                                <div class="result-item">
+                                    <label>理论株数</label>
+                                    <span class="value-large">9,200 株</span>
+                                </div>
+                                <div class="result-item">
+                                    <label>出苗率</label>
+                                    <span class="value-large success">91.9%</span>
+                                </div>
+                                <div class="result-item">
+                                    <label>缺苗数量</label>
+                                    <span class="value-large warning">744 株</span>
+                                </div>
+                                <div class="result-item">
+                                    <label>平均株距</label>
+                                    <span class="value-large">31.2 cm</span>
+                                </div>
+                            </div>
+                            <div class="panel-card">
+                                <h4>补苗建议</h4>
+                                <div class="suggestion-list">
+                                    <div class="suggestion-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <p>第3-5行，第10-15列区域缺苗严重</p>
+                                    </div>
+                                    <div class="suggestion-item">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                        <p>第8行，第20-25列区域需要补苗</p>
+                                    </div>
+                                </div>
+                                <button class="btn-primary btn-block" onclick="generateReplantingPlan()">生成补苗方案</button>
+                                <button class="btn-secondary btn-block" onclick="exportSeedlingReport()">导出分析报告</button>
                             </div>
                         </div>
                     </div>
-                    <div class="analysis-right">
-                        <div class="panel-card">
-                            <h4>分析设置</h4>
-                            <div class="form-group">
-                                <label>作物类型</label>
-                                <select class="form-control">
-                                    <option selected>棉花</option>
-                                    <option>玉米</option>
-                                    <option>大豆</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>理论株距（cm）</label>
-                                <input type="number" class="form-control" value="30">
-                            </div>
-                            <div class="form-group">
-                                <label>理论行距（cm）</label>
-                                <input type="number" class="form-control" value="76">
-                            </div>
-                            <div class="form-group">
-                                <label>识别灵敏度</label>
-                                <select class="form-control">
-                                    <option>高</option>
-                                    <option selected>中</option>
-                                    <option>低</option>
-                                </select>
-                            </div>
-                            <button class="btn-success btn-block">开始识别</button>
-                        </div>
-                        <div class="panel-card">
-                            <h4>出苗统计</h4>
-                            <div class="result-item">
-                                <label>实际出苗数</label>
-                                <span class="value-large">8,456 株</span>
-                            </div>
-                            <div class="result-item">
-                                <label>理论株数</label>
-                                <span class="value-large">9,200 株</span>
-                            </div>
-                            <div class="result-item">
-                                <label>出苗率</label>
-                                <span class="value-large success">91.9%</span>
-                            </div>
-                            <div class="result-item">
-                                <label>缺苗数量</label>
-                                <span class="value-large warning">744 株</span>
-                            </div>
-                            <div class="result-item">
-                                <label>平均株距</label>
-                                <span class="value-large">31.2 cm</span>
+                </div>
+
+                <!-- 高效巡田 -->
+                <div id="patrol-page" class="page">
+                    <div class="page-header">
+                        <h3>高效巡田 - 病虫害监测</h3>
+                        <button class="btn-primary" onclick="startPatrol()">
+                            <i class="fas fa-play"></i> 开始巡田
+                        </button>
+                    </div>
+                    <div class="patrol-container">
+                        <div class="patrol-map">
+                            <canvas id="patrolCanvas" width="1000" height="600"></canvas>
+                            <div class="patrol-legend">
+                                <h5>病虫害等级</h5>
+                                <div class="legend-item"><span class="dot severe"></span> 严重</div>
+                                <div class="legend-item"><span class="dot moderate"></span> 中等</div>
+                                <div class="legend-item"><span class="dot mild"></span> 轻微</div>
+                                <div class="legend-item"><span class="dot normal"></span> 正常</div>
                             </div>
                         </div>
-                        <div class="panel-card">
-                            <h4>补苗建议</h4>
-                            <div class="suggestion-list">
-                                <div class="suggestion-item">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <p>第3-5行，第10-15列区域缺苗严重</p>
+                        <div class="patrol-panel">
+                            <div class="panel-card">
+                                <h4>巡田设置</h4>
+                                <div class="form-group">
+                                    <label>监测类型</label>
+                                    <div class="checkbox-group">
+                                        <label><input type="checkbox" checked> 病害识别</label>
+                                        <label><input type="checkbox" checked> 虫害识别</label>
+                                        <label><input type="checkbox"> 杂草识别</label>
+                                    </div>
                                 </div>
-                                <div class="suggestion-item">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <p>第8行，第20-25列区域需要补苗</p>
+                                <div class="form-group">
+                                    <label>识别模型</label>
+                                    <select class="form-control">
+                                        <option>水稻病虫害模型</option>
+                                        <option>小麦病虫害模型</option>
+                                        <option>玉米病虫害模型</option>
+                                        <option>棉花病虫害模型</option>
+                                    </select>
+                                </div>
+                                <button class="btn-success btn-block">开始AI识别</button>
+                            </div>
+                            <div class="panel-card">
+                                <h4>监测结果</h4>
+                                <div class="disease-list">
+                                    <div class="disease-item severe">
+                                        <div class="disease-icon"><i class="fas fa-bug"></i></div>
+                                        <div class="disease-info">
+                                            <h5>稻飞虱</h5>
+                                            <p>检测到 23 处 | 严重程度：高</p>
+                                            <span class="location">主要分布：东北区域</span>
+                                        </div>
+                                    </div>
+                                    <div class="disease-item moderate">
+                                        <div class="disease-icon"><i class="fas fa-virus"></i></div>
+                                        <div class="disease-info">
+                                            <h5>稻瘟病</h5>
+                                            <p>检测到 8 处 | 严重程度：中</p>
+                                            <span class="location">主要分布：西南区域</span>
+                                        </div>
+                                    </div>
+                                    <div class="disease-item mild">
+                                        <div class="disease-icon"><i class="fas fa-leaf"></i></div>
+                                        <div class="disease-info">
+                                            <h5>纹枯病</h5>
+                                            <p>检测到 5 处 | 严重程度：低</p>
+                                            <span class="location">主要分布：中部区域</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <button class="btn-primary btn-block">生成补苗方案</button>
-                            <button class="btn-secondary btn-block">导出分析报告</button>
+                            <div class="panel-card">
+                                <h4>防治建议</h4>
+                                <div class="treatment-plan">
+                                    <div class="plan-item">
+                                        <h5><i class="fas fa-spray-can"></i> 稻飞虱防治</h5>
+                                        <p>推荐药剂：吡虫啉</p>
+                                        <p>用量：20ml/亩</p>
+                                        <p>施药时间：晴天傍晚</p>
+                                    </div>
+                                    <div class="plan-item">
+                                        <h5><i class="fas fa-spray-can"></i> 稻瘟病防治</h5>
+                                        <p>推荐药剂：三环唑</p>
+                                        <p>用量：30g/亩</p>
+                                        <p>施药时间：发病初期</p>
+                                    </div>
+                                </div>
+                                <button class="btn-primary btn-block">生成防治方案</button>
+                                <button class="btn-secondary btn-block">同步到无人机</button>
+                            </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- 长势监测 -->
+                <div id="growth-page" class="page">
+                    <div class="page-header">
+                        <h3>长势监测</h3>
+                        <button class="btn-primary" onclick="analyzeGrowth()">
+                            <i class="fas fa-play"></i> 开始监测
+                        </button>
+                    </div>
+                    <div class="growth-container">
+                        <div class="growth-main">
+                            <div class="ndvi-viewer">
+                                <canvas id="ndviCanvas" width="900" height="600"></canvas>
+                                <div class="ndvi-legend">
+                                    <h5>NDVI指数</h5>
+                                    <div class="gradient-bar"></div>
+                                    <div class="gradient-labels">
+                                        <span>0.0</span>
+                                        <span>0.2</span>
+                                        <span>0.4</span>
+                                        <span>0.6</span>
+                                        <span>0.8</span>
+                                        <span>1.0</span>
+                                    </div>
+                                    <div class="legend-desc">
+                                        <p>0.6-1.0: 长势优良</p>
+                                        <p>0.4-0.6: 长势正常</p>
+                                        <p>0.2-0.4: 长势较弱</p>
+                                        <p>0.0-0.2: 长势不良</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="growth-charts">
+                                <div class="chart-card">
+                                    <h4>NDVI趋势分析</h4>
+                                    <canvas id="trendChart" width="400" height="200"></canvas>
+                                </div>
+                                <div class="chart-card">
+                                    <h4>长势分布统计</h4>
+                                    <canvas id="distributionChart" width="400" height="200"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="growth-sidebar">
+                            <div class="panel-card">
+                                <h4>监测参数</h4>
+                                <div class="form-group">
+                                    <label>监测时间</label>
+                                    <input type="date" class="form-control" value="2024-11-24">
+                                </div>
+                                <div class="form-group">
+                                    <label>对比基准</label>
+                                    <select class="form-control">
+                                        <option>上次监测（7天前）</option>
+                                        <option>历史同期</option>
+                                        <option>标准值</option>
+                                    </select>
+                                </div>
+                                <button class="btn-success btn-block">生成NDVI图</button>
+                            </div>
+                            <div class="panel-card">
+                                <h4>长势统计</h4>
+                                <div class="stat-row">
+                                    <span>平均NDVI</span>
+                                    <strong>0.72</strong>
+                                </div>
+                                <div class="stat-row">
+                                    <span>最高NDVI</span>
+                                    <strong>0.89</strong>
+                                </div>
+                                <div class="stat-row">
+                                    <span>最低NDVI</span>
+                                    <strong>0.35</strong>
+                                </div>
+                                <div class="stat-row">
+                                    <span>长势优良区</span>
+                                    <strong>32.5亩 (71%)</strong>
+                                </div>
+                                <div class="stat-row">
+                                    <span>长势正常区</span>
+                                    <strong>10.2亩 (22%)</strong>
+                                </div>
+                                <div class="stat-row">
+                                    <span>长势较弱区</span>
+                                    <strong>2.9亩 (7%)</strong>
+                                </div>
+                            </div>
+                            <div class="panel-card">
+                                <h4>管理建议</h4>
+                                <div class="suggestion-list">
+                                    <div class="suggestion-item">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        <p>西南角区域长势较弱，建议增施氮肥</p>
+                                    </div>
+                                    <div class="suggestion-item">
+                                        <i class="fas fa-info-circle"></i>
+                                        <p>整体长势良好，继续保持当前管理措施</p>
+                                    </div>
+                                </div>
+                                <button class="btn-primary btn-block">生成变量施肥方案</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 产量预估 -->
+                <div id="yield-page" class="page">
+                    <div class="page-header">
+                        <h3>产量预估</h3>
+                        <button class="btn-primary" onclick="estimateYield()">
+                            <i class="fas fa-calculator"></i> 开始预估
+                        </button>
+                    </div>
+                    <div class="yield-container">
+                        <div class="yield-main">
+                            <div class="yield-map">
+                                <canvas id="yieldCanvas" width="900" height="500"></canvas>
+                                <div class="yield-legend">
+                                    <h5>产量分布（kg/亩）</h5>
+                                    <div class="legend-item"><span class="color" style="background: #006837;"></span> >
+                                        600
+                                    </div>
+                                    <div class="legend-item"><span class="color" style="background: #31a354;"></span>
+                                        550-600</div>
+                                    <div class="legend-item"><span class="color" style="background: #78c679;"></span>
+                                        500-550</div>
+                                    <div class="legend-item"><span class="color" style="background: #c2e699;"></span>
+                                        450-500</div>
+                                    <div class="legend-item"><span class="color" style="background: #ffffcc;"></span>
+                                        < 450</div>
+                                    </div>
+                                </div>
+                                <div class="yield-analysis">
+                                    <div class="analysis-card">
+                                        <h4>穗数统计</h4>
+                                        <div class="big-number">
+                                            <span class="number">285,600</span>
+                                            <span class="unit">穗</span>
+                                        </div>
+                                        <p>AI自动识别统计</p>
+                                    </div>
+                                    <div class="analysis-card">
+                                        <h4>预估总产量</h4>
+                                        <div class="big-number">
+                                            <span class="number">25,340</span>
+                                            <span class="unit">kg</span>
+                                        </div>
+                                        <p>基于历史数据模型</p>
+                                    </div>
+                                    <div class="analysis-card">
+                                        <h4>平均亩产</h4>
+                                        <div class="big-number">
+                                            <span class="number">555</span>
+                                            <span class="unit">kg/亩</span>
+                                        </div>
+                                        <p>高于区域平均15%</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="yield-sidebar">
+                                <div class="panel-card">
+                                    <h4>预估参数</h4>
+                                    <div class="form-group">
+                                        <label>作物类型</label>
+                                        <select class="form-control">
+                                            <option selected>水稻</option>
+                                            <option>小麦</option>
+                                            <option>玉米</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>生长阶段</label>
+                                        <select class="form-control">
+                                            <option>抽穗期</option>
+                                            <option selected>灌浆期</option>
+                                            <option>成熟期</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>预估模型</label>
+                                        <select class="form-control">
+                                            <option selected>AI深度学习模型</option>
+                                            <option>传统经验模型</option>
+                                            <option>混合模型</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn-success btn-block">重新计算</button>
+                                </div>
+                                <div class="panel-card">
+                                    <h4>产量分析</h4>
+                                    <div class="stat-row">
+                                        <span>高产区面积</span>
+                                        <strong>28.3亩 (62%)</strong>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>中产区面积</span>
+                                        <strong>14.5亩 (32%)</strong>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>低产区面积</span>
+                                        <strong>2.8亩 (6%)</strong>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>预估误差范围</span>
+                                        <strong>±5%</strong>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>预计收获时间</span>
+                                        <strong>15天后</strong>
+                                    </div>
+                                </div>
+                                <div class="panel-card">
+                                    <h4>收获建议</h4>
+                                    <div class="suggestion-list">
+                                        <div class="suggestion-item">
+                                            <i class="fas fa-calendar-check"></i>
+                                            <p>建议收获时间：12月8-10日</p>
+                                        </div>
+                                        <div class="suggestion-item">
+                                            <i class="fas fa-tractor"></i>
+                                            <p>预计需要收割机：2台</p>
+                                        </div>
+                                        <div class="suggestion-item">
+                                            <i class="fas fa-clock"></i>
+                                            <p>预计作业时间：1.5天</p>
+                                        </div>
+                                    </div>
+                                    <button class="btn-primary btn-block">生成收获计划</button>
+                                    <button class="btn-secondary btn-block">导出预估报告</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 稻麦变量施肥 -->
+                    <div id="variable-fertilizer-page" class="page">
+                        <div class="page-header">
+                            <h3>稻麦变量施肥</h3>
+                            <button class="btn-primary" onclick="generatePrescription()">
+                                <i class="fas fa-file-medical"></i> 生成处方图
+                            </button>
+                        </div>
+                        <div class="variable-container">
+                            <div class="variable-left">
+                                <div class="prescription-map">
+                                    <canvas id="prescriptionCanvas" width="800" height="600"></canvas>
+                                    <div class="prescription-legend">
+                                        <h5>施肥量（kg/亩）</h5>
+                                        <div class="legend-item"><span class="color"
+                                                style="background: #d73027;"></span>
+                                            25-30</div>
+                                        <div class="legend-item"><span class="color"
+                                                style="background: #fc8d59;"></span>
+                                            20-25</div>
+                                        <div class="legend-item"><span class="color"
+                                                style="background: #fee090;"></span>
+                                            15-20</div>
+                                        <div class="legend-item"><span class="color"
+                                                style="background: #e0f3f8;"></span>
+                                            10-15</div>
+                                        <div class="legend-item"><span class="color"
+                                                style="background: #91bfdb;"></span>
+                                            5-10</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="variable-right">
+                                <div class="panel-card">
+                                    <h4>处方图设置</h4>
+                                    <div class="form-group">
+                                        <label>肥料类型</label>
+                                        <select class="form-control">
+                                            <option selected>尿素（氮肥）</option>
+                                            <option>磷酸二铵（磷肥）</option>
+                                            <option>氯化钾（钾肥）</option>
+                                            <option>复合肥</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>基准用量（kg/亩）</label>
+                                        <input type="number" class="form-control" value="15">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>变量范围</label>
+                                        <div class="range-input">
+                                            <input type="number" class="form-control" value="5" placeholder="最小">
+                                            <span>-</span>
+                                            <input type="number" class="form-control" value="30" placeholder="最大">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>NDVI数据源</label>
+                                        <select class="form-control">
+                                            <option selected>2024-11-20 监测数据</option>
+                                            <option>2024-11-15 监测数据</option>
+                                            <option>上传新数据</option>
+                                        </select>
+                                    </div>
+                                    <button class="btn-success btn-block">生成处方图</button>
+                                </div>
+                                <div class="panel-card">
+                                    <h4>用量统计</h4>
+                                    <div class="stat-row">
+                                        <span>总用量</span>
+                                        <strong>685 kg</strong>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>平均用量</span>
+                                        <strong>15.2 kg/亩</strong>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>节省量</span>
+                                        <strong class="success">142 kg (17%)</strong>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>节省成本</span>
+                                        <strong class="success">¥426</strong>
+                                    </div>
+                                </div>
+                                <div class="panel-card">
+                                    <h4>作业设置</h4>
+                                    <div class="form-group">
+                                        <label>作业设备</label>
+                                        <select class="form-control">
+                                            <option>T40农业无人机-01</option>
+                                            <option>T40农业无人机-02</option>
+                                            <option>变量施肥机-01</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>作业时间</label>
+                                        <input type="datetime-local" class="form-control">
+                                    </div>
+                                    <button class="btn-primary btn-block">同步到设备</button>
+                                    <button class="btn-secondary btn-block">下载处方图</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 变量除草 -->
+                    <div id="variable-weeding-page" class="page">
+                        <div class="page-header">
+                            <h3>变量除草</h3>
+                            <button class="btn-primary" onclick="generateWeedingPlan()">
+                                <i class="fas fa-file-medical"></i> 生成除草方案
+                            </button>
+                        </div>
+                        <div class="variable-container">
+                            <div class="variable-left">
+                                <div class="weed-detection">
+                                    <canvas id="weedCanvas" width="800" height="600"></canvas>
+                                    <div class="weed-legend">
+                                        <h5>杂草密度</h5>
+                                        <div class="legend-item"><span class="color"
+                                                style="background: #8b0000;"></span> 严重
+                                        </div>
+                                        <div class="legend-item"><span class="color"
+                                                style="background: #ff4500;"></span> 中等
+                                        </div>
+                                        <div class="legend-item"><span class="color"
+                                                style="background: #ffa500;"></span> 轻微
+                                        </div>
+                                        <div class="legend-item"><span class="color"
+                                                style="background: #90ee90;"></span>
+                                            无杂草</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="variable-right">
+                                <div class="panel-card">
+                                    <h4>杂草识别</h4>
+                                    <div class="form-group">
+                                        <label>识别模型</label>
+                                        <select class="form-control">
+                                            <option selected>通用杂草识别</option>
+                                            <option>禾本科杂草</option>
+                                            <option>阔叶杂草</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>识别阈值</label>
+                                        <input type="range" class="form-control" min="0" max="100" value="70">
+                                        <span>70%</span>
+                                    </div>
+                                    <button class="btn-success btn-block">开始识别</button>
+                                </div>
+                                <div class="panel-card">
+                                    <h4>杂草统计</h4>
+                                    <div class="weed-stats">
+                                        <div class="weed-type">
+                                            <i class="fas fa-leaf"></i>
+                                            <div>
+                                                <h5>稗草</h5>
+                                                <p>覆盖率：12.5%</p>
+                                            </div>
+                                        </div>
+                                        <div class="weed-type">
+                                            <i class="fas fa-leaf"></i>
+                                            <div>
+                                                <h5>马唐</h5>
+                                                <p>覆盖率：8.3%</p>
+                                            </div>
+                                        </div>
+                                        <div class="weed-type">
+                                            <i class="fas fa-leaf"></i>
+                                            <div>
+                                                <h5>其他杂草</h5>
+                                                <p>覆盖率：5.2%</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>需除草面积</span>
+                                        <strong>18.6亩 (41%)</strong>
+                                    </div>
+                                </div>
+                                <div class="panel-card">
+                                    <h4>除草方案</h4>
+                                    <div class="form-group">
+                                        <label>除草剂类型</label>
+                                        <select class="form-control">
+                                            <option selected>草甘膦</option>
+                                            <option>2,4-D</option>
+                                            <option>莠去津</option>
+                                        </select>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>预计用量</span>
+                                        <strong>3.2 L</strong>
+                                    </div>
+                                    <div class="stat-row">
+                                        <span>节省量</span>
+                                        <strong class="success">1.8 L (36%)</strong>
+                                    </div>
+                                    <button class="btn-primary btn-block">生成处方图</button>
+                                    <button class="btn-secondary btn-block">同步到无人机</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 棉花化控 -->
+                    <div id="cotton-control-page" class="page">
+                        <div class="page-header">
+                            <h3>棉花化控</h3>
+                            <button class="btn-primary" onclick="generateCottonControl()">
+                                <i class="fas fa-file-medical"></i> 生成化控方案
+                            </button>
+                        </div>
+                        <div class="variable-container">
+                            <div class="variable-left">
+                                <div class="cotton-map">
+                                    <canvas id="cottonCanvas" width="800" height="600"></canvas>
+                                    <div class="cotton-legend">
+                                        <h5>株高分布（cm）</h5>
+                                        <div class="legend-item"><span class="color"
+                                                style="background: #d73027;"></span> >
+                                            80</div>
+                                        <div class="legend-item"><span class="color"
+                                                style="background: #fc8d59;"></span>
+                                            70-80</div>
+                                        <div class="legend-item"><span class="color"
+                                                style="background: #fee090;"></span>
+                                            60-70</div>
+                                        <div class="legend-item"><span class="color"
+                                                style="background: #e0f3f8;"></span>
+                                            50-60</div>
+                                        <div class="legend-item"><span class="color"
+                                                style="background: #91bfdb;"></span>
+                                            < 50</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="variable-right">
+                                    <div class="panel-card">
+                                        <h4>长势分析</h4>
+                                        <div class="form-group">
+                                            <label>生长阶段</label>
+                                            <select class="form-control">
+                                                <option>苗期</option>
+                                                <option selected>蕾期</option>
+                                                <option>花铃期</option>
+                                            </select>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>平均株高</span>
+                                            <strong>68.5 cm</strong>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>最高株高</span>
+                                            <strong>85.2 cm</strong>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>最低株高</span>
+                                            <strong>52.3 cm</strong>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>株高差异</span>
+                                            <strong class="warning">32.9 cm</strong>
+                                        </div>
+                                    </div>
+                                    <div class="panel-card">
+                                        <h4>化控方案</h4>
+                                        <div class="form-group">
+                                            <label>化控剂类型</label>
+                                            <select class="form-control">
+                                                <option selected>缩节胺</option>
+                                                <option>甲哌鎓</option>
+                                                <option>复配制剂</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>基准用量（g/亩）</label>
+                                            <input type="number" class="form-control" value="3">
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>高用量区</span>
+                                            <strong>12.3亩 (5-6g/亩)</strong>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>标准用量区</span>
+                                            <strong>25.8亩 (3-4g/亩)</strong>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>低用量区</span>
+                                            <strong>7.5亩 (1-2g/亩)</strong>
+                                        </div>
+                                        <button class="btn-success btn-block">生成处方图</button>
+                                    </div>
+                                    <div class="panel-card">
+                                        <h4>作业参数</h4>
+                                        <div class="form-group">
+                                            <label>作业设备</label>
+                                            <select class="form-control">
+                                                <option>T40农业无人机-01</option>
+                                                <option>T40农业无人机-02</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>喷洒流量（L/min）</label>
+                                            <input type="number" class="form-control" value="6" step="0.5">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>飞行速度（m/s）</label>
+                                            <input type="number" class="form-control" value="5" step="0.5">
+                                        </div>
+                                        <button class="btn-primary btn-block">同步到无人机</button>
+                                        <button class="btn-secondary btn-block">下载方案</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 果园航测 -->
+                        <div id="orchard-survey-page" class="page">
+                            <div class="page-header">
+                                <h3>果园航测</h3>
+                                <button class="btn-primary" onclick="startOrchardSurvey()">
+                                    <i class="fas fa-plane"></i> 开始航测
+                                </button>
+                            </div>
+                            <div class="survey-container">
+                                <div class="survey-main">
+                                    <div class="survey-map">
+                                        <canvas id="orchardCanvas" width="900" height="600"></canvas>
+                                        <div class="survey-tools">
+                                            <button class="tool-btn"><i class="fas fa-expand"></i> 全屏</button>
+                                            <button class="tool-btn"><i class="fas fa-layer-group"></i> 图层</button>
+                                            <button class="tool-btn"><i class="fas fa-ruler"></i> 测量</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="survey-sidebar">
+                                    <div class="panel-card">
+                                        <h4>航测参数</h4>
+                                        <div class="form-group">
+                                            <label>果园类型</label>
+                                            <select class="form-control">
+                                                <option selected>山地果园</option>
+                                                <option>平原果园</option>
+                                                <option>丘陵果园</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>果树类型</label>
+                                            <select class="form-control">
+                                                <option>苹果</option>
+                                                <option selected>柑橘</option>
+                                                <option>梨</option>
+                                                <option>桃</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>航测模式</label>
+                                            <select class="form-control">
+                                                <option selected>三维建模</option>
+                                                <option>正射影像</option>
+                                                <option>倾斜摄影</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>飞行高度（米）</label>
+                                            <input type="number" class="form-control" value="30" min="10" max="100">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>地形跟随</label>
+                                            <select class="form-control">
+                                                <option selected>开启（推荐）</option>
+                                                <option>关闭</option>
+                                            </select>
+                                        </div>
+                                        <button class="btn-success btn-block">生成航测任务</button>
+                                    </div>
+                                    <div class="panel-card">
+                                        <h4>任务信息</h4>
+                                        <div class="stat-row">
+                                            <span>航测面积</span>
+                                            <strong>28.5 亩</strong>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>预计航点</span>
+                                            <strong>156 个</strong>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>预计照片</span>
+                                            <strong>468 张</strong>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>预计时长</span>
+                                            <strong>25 分钟</strong>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>电池消耗</span>
+                                            <strong>2 块</strong>
+                                        </div>
+                                    </div>
+                                    <div class="panel-card">
+                                        <h4>设备状态</h4>
+                                        <div class="device-status">
+                                            <div class="status-item">
+                                                <i class="fas fa-drone"></i>
+                                                <div>
+                                                    <h5>M300 RTK</h5>
+                                                    <span class="status-badge online">在线</span>
+                                                </div>
+                                            </div>
+                                            <div class="status-item">
+                                                <i class="fas fa-battery-full"></i>
+                                                <div>
+                                                    <h5>电池电量</h5>
+                                                    <span>95%</span>
+                                                </div>
+                                            </div>
+                                            <div class="status-item">
+                                                <i class="fas fa-satellite"></i>
+                                                <div>
+                                                    <h5>GPS信号</h5>
+                                                    <span class="status-badge online">优秀</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button class="btn-primary btn-block">开始航测</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 平台三维航线 -->
+                        <div id="3d-route-page" class="page">
+                            <div class="page-header">
+                                <h3>平台三维航线规划</h3>
+                                <button class="btn-primary" onclick="create3DRoute()">
+                                    <i class="fas fa-plus"></i> 新建航线
+                                </button>
+                            </div>
+                            <div class="route-container">
+                                <div class="route-main">
+                                    <div class="route-3d-view">
+                                        <canvas id="route3DCanvas" width="900" height="600"></canvas>
+                                        <div class="view-controls">
+                                            <button class="control-btn"><i class="fas fa-undo"></i> 旋转</button>
+                                            <button class="control-btn"><i class="fas fa-arrows-alt"></i> 平移</button>
+                                            <button class="control-btn"><i class="fas fa-search-plus"></i> 缩放</button>
+                                            <button class="control-btn"><i class="fas fa-cube"></i> 3D视图</button>
+                                            <button class="control-btn"><i class="fas fa-map"></i> 2D视图</button>
+                                        </div>
+                                        <div class="elevation-profile">
+                                            <h5>高程剖面图</h5>
+                                            <canvas id="elevationChart" width="800" height="150"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="route-sidebar">
+                                    <div class="panel-card">
+                                        <h4>航线参数</h4>
+                                        <div class="form-group">
+                                            <label>作业类型</label>
+                                            <select class="form-control">
+                                                <option>果树喷洒</option>
+                                                <option selected>果园巡检</option>
+                                                <option>授粉作业</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>飞行模式</label>
+                                            <select class="form-control">
+                                                <option selected>地形跟随</option>
+                                                <option>等高飞行</option>
+                                                <option>仿地飞行</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>相对高度（米）</label>
+                                            <input type="number" class="form-control" value="3" min="1" max="10"
+                                                step="0.5">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>飞行速度（m/s）</label>
+                                            <input type="number" class="form-control" value="3" min="1" max="7"
+                                                step="0.5">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>航线间距（米）</label>
+                                            <input type="number" class="form-control" value="4" min="2" max="10">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>安全高度（米）</label>
+                                            <input type="number" class="form-control" value="5" min="3" max="15">
+                                        </div>
+                                        <button class="btn-success btn-block">生成航线</button>
+                                    </div>
+                                    <div class="panel-card">
+                                        <h4>航线信息</h4>
+                                        <div class="stat-row">
+                                            <span>航线总长</span>
+                                            <strong>2,856 米</strong>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>航点数量</span>
+                                            <strong>89 个</strong>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>最高点</span>
+                                            <strong>385 米</strong>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>最低点</span>
+                                            <strong>342 米</strong>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>高差</span>
+                                            <strong>43 米</strong>
+                                        </div>
+                                        <div class="stat-row">
+                                            <span>预计时长</span>
+                                            <strong>18 分钟</strong>
+                                        </div>
+                                    </div>
+                                    <div class="panel-card">
+                                        <h4>航线操作</h4>
+                                        <button class="btn-primary btn-block">预览航线</button>
+                                        <button class="btn-primary btn-block">同步到飞机</button>
+                                        <button class="btn-secondary btn-block">导出航线文件</button>
+                                        <button class="btn-secondary btn-block">保存为模板</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 山地果园作业 -->
+                        <div id="mountain-operation-page" class="page">
+                            <div class="page-header">
+                                <h3>山地果园作业</h3>
+                                <button class="btn-primary" onclick="startMountainOperation()">
+                                    <i class="fas fa-play"></i> 开始作业
+                                </button>
+                            </div>
+                            <div class="operation-container">
+                                <div class="operation-main">
+                                    <div class="operation-monitor">
+                                        <canvas id="mountainCanvas" width="900" height="500"></canvas>
+                                        <div class="monitor-overlay">
+                                            <div class="flight-info">
+                                                <div class="info-item">
+                                                    <label>飞行高度</label>
+                                                    <span class="value">3.2m</span>
+                                                </div>
+                                                <div class="info-item">
+                                                    <label>飞行速度</label>
+                                                    <span class="value">3.5m/s</span>
+                                                </div>
+                                                <div class="info-item">
+                                                    <label>剩余电量</label>
+                                                    <span class="value">78%</span>
+                                                </div>
+                                                <div class="info-item">
+                                                    <label>作业进度</label>
+                                                    <span class="value">45%</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="operation-progress">
+                                        <h4>作业进度</h4>
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 45%;"></div>
+                                        </div>
+                                        <div class="progress-stats">
+                                            <span>已完成：12.8亩</span>
+                                            <span>剩余：15.7亩</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="operation-sidebar">
+                                    <div class="panel-card">
+                                        <h4>作业参数</h4>
+                                        <div class="param-display">
+                                            <div class="param-item">
+                                                <i class="fas fa-tint"></i>
+                                                <div>
+                                                    <label>喷洒流量</label>
+                                                    <span>6.0 L/min</span>
+                                                </div>
+                                            </div>
+                                            <div class="param-item">
+                                                <i class="fas fa-wind"></i>
+                                                <div>
+                                                    <label>风速</label>
+                                                    <span>2.3 m/s</span>
+                                                </div>
+                                            </div>
+                                            <div class="param-item">
+                                                <i class="fas fa-thermometer-half"></i>
+                                                <div>
+                                                    <label>温度</label>
+                                                    <span>25°C</span>
+                                                </div>
+                                            </div>
+                                            <div class="param-item">
+                                                <i class="fas fa-tachometer-alt"></i>
+                                                <div>
+                                                    <label>作业效率</label>
+                                                    <span>8.5 亩/小时</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="panel-card">
+                                        <h4>设备状态</h4>
+                                        <div class="device-list">
+                                            <div class="device-item active">
+                                                <i class="fas fa-drone"></i>
+                                                <div>
+                                                    <h5>T40-01</h5>
+                                                    <span class="status-badge online">作业中</span>
+                                                </div>
+                                            </div>
+                                            <div class="device-item">
+                                                <i class="fas fa-drone"></i>
+                                                <div>
+                                                    <h5>T40-02</h5>
+                                                    <span class="status-badge standby">待命</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="panel-card">
+                                        <h4>安全监控</h4>
+                                        <div class="safety-alerts">
+                                            <div class="alert-item success">
+                                                <i class="fas fa-check-circle"></i>
+                                                <p>地形跟随正常</p>
+                                            </div>
+                                            <div class="alert-item success">
+                                                <i class="fas fa-check-circle"></i>
+                                                <p>避障系统正常</p>
+                                            </div>
+                                            <div class="alert-item success">
+                                                <i class="fas fa-check-circle"></i>
+                                                <p>GPS信号良好</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="panel-card">
+                                        <h4>作业控制</h4>
+                                        <button class="btn-warning btn-block">暂停作业</button>
+                                        <button class="btn-danger btn-block">紧急返航</button>
+                                        <button class="btn-secondary btn-block">切换设备</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 作业数据回溯 -->
+                        <div id="data-trace-page" class="page">
+                            <div class="page-header">
+                                <h3>作业数据回溯</h3>
+                                <div class="header-actions">
+                                    <input type="date" class="form-control" style="width: auto;">
+                                    <button class="btn-primary"><i class="fas fa-search"></i> 查询</button>
+                                    <button class="btn-secondary"><i class="fas fa-download"></i> 导出</button>
+                                </div>
+                            </div>
+                            <div class="trace-container">
+                                <div class="filter-panel">
+                                    <div class="filter-group">
+                                        <label>作业类型</label>
+                                        <select class="form-control">
+                                            <option>全部</option>
+                                            <option>施肥</option>
+                                            <option>喷药</option>
+                                            <option>播种</option>
+                                            <option>巡田</option>
+                                        </select>
+                                    </div>
+                                    <div class="filter-group">
+                                        <label>地块</label>
+                                        <select class="form-control">
+                                            <option>全部地块</option>
+                                            <option>A区-01</option>
+                                            <option>A区-02</option>
+                                            <option>B区-01</option>
+                                        </select>
+                                    </div>
+                                    <div class="filter-group">
+                                        <label>设备</label>
+                                        <select class="form-control">
+                                            <option>全部设备</option>
+                                            <option>T40-01</option>
+                                            <option>T40-02</option>
+                                            <option>M300-01</option>
+                                        </select>
+                                    </div>
+                                    <div class="filter-group">
+                                        <label>操作员</label>
+                                        <select class="form-control">
+                                            <option>全部</option>
+                                            <option>张三</option>
+                                            <option>李四</option>
+                                            <option>王五</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="trace-table">
+                                    <table class="data-table">
+                                        <thead>
+                                            <tr>
+                                                <th>作业时间</th>
+                                                <th>作业类型</th>
+                                                <th>地块</th>
+                                                <th>作业面积</th>
+                                                <th>设备</th>
+                                                <th>操作员</th>
+                                                <th>用量/参数</th>
+                                                <th>操作</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>2024-11-24 14:30</td>
+                                                <td><span class="tag tag-fertilizer">变量施肥</span></td>
+                                                <td>A区-01</td>
+                                                <td>45.6亩</td>
+                                                <td>T40-01</td>
+                                                <td>张三</td>
+                                                <td>尿素 120kg</td>
+                                                <td>
+                                                    <button class="btn-small" onclick="viewTraceDetail(1)">详情</button>
+                                                    <button class="btn-small">轨迹</button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>2024-11-23 09:15</td>
+                                                <td><span class="tag tag-spray">病虫害防治</span></td>
+                                                <td>B区-01</td>
+                                                <td>52.3亩</td>
+                                                <td>T40-02</td>
+                                                <td>李四</td>
+                                                <td>吡虫啉 1.2L</td>
+                                                <td>
+                                                    <button class="btn-small" onclick="viewTraceDetail(2)">详情</button>
+                                                    <button class="btn-small">轨迹</button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>2024-11-22 16:20</td>
+                                                <td><span class="tag tag-survey">航测巡田</span></td>
+                                                <td>A区-02</td>
+                                                <td>38.2亩</td>
+                                                <td>M300-01</td>
+                                                <td>王五</td>
+                                                <td>-</td>
+                                                <td>
+                                                    <button class="btn-small" onclick="viewTraceDetail(3)">详情</button>
+                                                    <button class="btn-small">轨迹</button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>2024-11-21 10:45</td>
+                                                <td><span class="tag tag-weeding">变量除草</span></td>
+                                                <td>A区-01</td>
+                                                <td>45.6亩</td>
+                                                <td>T40-01</td>
+                                                <td>张三</td>
+                                                <td>草甘膦 2.8L</td>
+                                                <td>
+                                                    <button class="btn-small" onclick="viewTraceDetail(4)">详情</button>
+                                                    <button class="btn-small">轨迹</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="pagination">
+                                    <button class="btn-small">上一页</button>
+                                    <span>第 1 页 / 共 15 页</span>
+                                    <button class="btn-small">下一页</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 农机实时监管 -->
+                        <div id="realtime-monitor-page" class="page">
+                            <div class="page-header">
+                                <h3>农机实时监管</h3>
+                                <div class="header-actions">
+                                    <button class="btn-primary"><i class="fas fa-sync"></i> 刷新</button>
+                                    <button class="btn-secondary"><i class="fas fa-cog"></i> 设置</button>
+                                </div>
+                            </div>
+                            <div class="monitor-layout">
+                                <div class="monitor-map-container">
+                                    <div class="realtime-map">
+                                        <canvas id="realtimeCanvas" width="1000" height="700"></canvas>
+                                        <div class="map-legend">
+                                            <h5>设备状态</h5>
+                                            <div class="legend-item"><span class="dot working"></span> 作业中</div>
+                                            <div class="legend-item"><span class="dot standby"></span> 待命</div>
+                                            <div class="legend-item"><span class="dot offline"></span> 离线</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="monitor-device-list">
+                                    <h4>设备列表</h4>
+                                    <div class="device-cards">
+                                        <div class="device-card working">
+                                            <div class="device-header">
+                                                <h5><i class="fas fa-drone"></i> T40-01</h5>
+                                                <span class="status-badge working">作业中</span>
+                                            </div>
+                                            <div class="device-info">
+                                                <p><i class="fas fa-map-marker-alt"></i> A区-01号地块</p>
+                                                <p><i class="fas fa-user"></i> 操作员：张三</p>
+                                                <p><i class="fas fa-tasks"></i> 变量施肥</p>
+                                                <p><i class="fas fa-battery-three-quarters"></i> 电量：78%</p>
+                                                <p><i class="fas fa-chart-line"></i> 进度：45%</p>
+                                            </div>
+                                            <div class="device-actions">
+                                                <button class="btn-small">查看详情</button>
+                                                <button class="btn-small">视频监控</button>
+                                            </div>
+                                        </div>
+                                        <div class="device-card working">
+                                            <div class="device-header">
+                                                <h5><i class="fas fa-drone"></i> T40-02</h5>
+                                                <span class="status-badge working">作业中</span>
+                                            </div>
+                                            <div class="device-info">
+                                                <p><i class="fas fa-map-marker-alt"></i> B区-01号地块</p>
+                                                <p><i class="fas fa-user"></i> 操作员：李四</p>
+                                                <p><i class="fas fa-tasks"></i> 病虫害防治</p>
+                                                <p><i class="fas fa-battery-full"></i> 电量：92%</p>
+                                                <p><i class="fas fa-chart-line"></i> 进度：28%</p>
+                                            </div>
+                                            <div class="device-actions">
+                                                <button class="btn-small">查看详情</button>
+                                                <button class="btn-small">视频监控</button>
+                                            </div>
+                                        </div>
+                                        <div class="device-card standby">
+                                            <div class="device-header">
+                                                <h5><i class="fas fa-drone"></i> M300-01</h5>
+                                                <span class="status-badge standby">待命</span>
+                                            </div>
+                                            <div class="device-info">
+                                                <p><i class="fas fa-map-marker-alt"></i> 基地</p>
+                                                <p><i class="fas fa-user"></i> 操作员：王五</p>
+                                                <p><i class="fas fa-tasks"></i> 无任务</p>
+                                                <p><i class="fas fa-battery-full"></i> 电量：100%</p>
+                                            </div>
+                                            <div class="device-actions">
+                                                <button class="btn-small">分配任务</button>
+                                                <button class="btn-small">查看详情</button>
+                                            </div>
+                                        </div>
+                                        <div class="device-card offline">
+                                            <div class="device-header">
+                                                <h5><i class="fas fa-drone"></i> T40-03</h5>
+                                                <span class="status-badge offline">离线</span>
+                                            </div>
+                                            <div class="device-info">
+                                                <p><i class="fas fa-map-marker-alt"></i> 未知位置</p>
+                                                <p><i class="fas fa-clock"></i> 离线时间：2小时</p>
+                                            </div>
+                                            <div class="device-actions">
+                                                <button class="btn-small btn-danger">检查设备</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 作业质量监管 -->
+                        <div id="quality-control-page" class="page">
+                            <div class="page-header">
+                                <h3>作业质量监管</h3>
+                                <button class="btn-primary" onclick="addQualityRule()">
+                                    <i class="fas fa-plus"></i> 添加监管规则
+                                </button>
+                            </div>
+                            <div class="quality-container">
+                                <div class="quality-rules">
+                                    <h4>监管规则设置</h4>
+                                    <div class="rule-list">
+                                        <div class="rule-card">
+                                            <div class="rule-header">
+                                                <h5>施肥作业标准</h5>
+                                                <label class="switch">
+                                                    <input type="checkbox" checked>
+                                                    <span class="slider"></span>
+                                                </label>
+                                            </div>
+                                            <div class="rule-content">
+                                                <div class="rule-item">
+                                                    <label>飞行高度</label>
+                                                    <span>2-4米</span>
+                                                </div>
+                                                <div class="rule-item">
+                                                    <label>飞行速度</label>
+                                                    <span>3-6 m/s</span>
+                                                </div>
+                                                <div class="rule-item">
+                                                    <label>喷洒流量</label>
+                                                    <span>4-8 L/min</span>
+                                                </div>
+                                                <div class="rule-item">
+                                                    <label>重喷率</label>
+                                                    <span>≤ 5%</span>
+                                                </div>
+                                                <div class="rule-item">
+                                                    <label>漏喷率</label>
+                                                    <span>≤ 3%</span>
+                                                </div>
+                                            </div>
+                                            <div class="rule-actions">
+                                                <button class="btn-small">编辑</button>
+                                                <button class="btn-small btn-danger">删除</button>
+                                            </div>
+                                        </div>
+                                        <div class="rule-card">
+                                            <div class="rule-header">
+                                                <h5>喷药作业标准</h5>
+                                                <label class="switch">
+                                                    <input type="checkbox" checked>
+                                                    <span class="slider"></span>
+                                                </label>
+                                            </div>
+                                            <div class="rule-content">
+                                                <div class="rule-item">
+                                                    <label>飞行高度</label>
+                                                    <span>1.5-3米</span>
+                                                </div>
+                                                <div class="rule-item">
+                                                    <label>飞行速度</label>
+                                                    <span>2-5 m/s</span>
+                                                </div>
+                                                <div class="rule-item">
+                                                    <label>喷洒流量</label>
+                                                    <span>3-6 L/min</span>
+                                                </div>
+                                                <div class="rule-item">
+                                                    <label>风速限制</label>
+                                                    <span>≤ 4 m/s</span>
+                                                </div>
+                                            </div>
+                                            <div class="rule-actions">
+                                                <button class="btn-small">编辑</button>
+                                                <button class="btn-small btn-danger">删除</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="quality-monitor">
+                                    <h4>实时质量监控</h4>
+                                    <div class="quality-alerts">
+                                        <div class="alert-card warning">
+                                            <div class="alert-icon">
+                                                <i class="fas fa-exclamation-triangle"></i>
+                                            </div>
+                                            <div class="alert-content">
+                                                <h5>飞行高度异常</h5>
+                                                <p>设备：T40-01 | 地块：A区-01</p>
+                                                <p>当前高度：5.2米（超出标准范围）</p>
+                                                <span class="time">2分钟前</span>
+                                            </div>
+                                            <div class="alert-actions">
+                                                <button class="btn-small">查看</button>
+                                                <button class="btn-small">通知操作员</button>
+                                            </div>
+                                        </div>
+                                        <div class="alert-card danger">
+                                            <div class="alert-icon">
+                                                <i class="fas fa-times-circle"></i>
+                                            </div>
+                                            <div class="alert-content">
+                                                <h5>重喷率超标</h5>
+                                                <p>设备：T40-02 | 地块：B区-01</p>
+                                                <p>当前重喷率：8.5%（标准≤5%）</p>
+                                                <span class="time">5分钟前</span>
+                                            </div>
+                                            <div class="alert-actions">
+                                                <button class="btn-small">查看</button>
+                                                <button class="btn-small">通知操作员</button>
+                                            </div>
+                                        </div>
+                                        <div class="alert-card info">
+                                            <div class="alert-icon">
+                                                <i class="fas fa-info-circle"></i>
+                                            </div>
+                                            <div class="alert-content">
+                                                <h5>作业质量良好</h5>
+                                                <p>设备：M300-01 | 地块：C区果园</p>
+                                                <p>所有参数均在标准范围内</p>
+                                                <span class="time">10分钟前</span>
+                                            </div>
+                                            <div class="alert-actions">
+                                                <button class="btn-small">查看详情</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="quality-stats">
+                                        <h4>质量统计（今日）</h4>
+                                        <div class="stats-grid">
+                                            <div class="stat-item">
+                                                <div class="stat-value success">95%</div>
+                                                <div class="stat-label">合格率</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-value warning">12</div>
+                                                <div class="stat-label">警告次数</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-value danger">3</div>
+                                                <div class="stat-label">违规次数</div>
+                                            </div>
+                                            <div class="stat-item">
+                                                <div class="stat-value">42</div>
+                                                <div class="stat-label">作业次数</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
-
-            <!-- 高效巡田 -->
-            <div id="patrol-page" class="page">
-                <div class="page-header">
-                    <h3>高效巡田 - 病虫害监测</h3>
-                    <button class="btn-primary" onclick="startPatrol()">
-                        <i class="fas fa-play"></i> 开始巡田
-                    </button>
-                </div>
-                <div class="patrol-container">
-                    <div class="patrol-map">
-                        <canvas id="patrolCanvas" width="1000" height="600"></canvas>
-                        <div class="patrol-legend">
-                            <h5>病虫害等级</h5>
-                            <div class="legend-item"><span class="dot severe"></span> 严重</div>
-                            <div class="legend-item"><span class="dot moderate"></span> 中等</div>
-                            <div class="legend-item"><span class="dot mild"></span> 轻微</div>
-                            <div class="legend-item"><span class="dot normal"></span> 正常</div>
-                        </div>
-                    </div>
-                    <div class="patrol-panel">
-                        <div class="panel-card">
-                            <h4>巡田设置</h4>
-                            <div class="form-group">
-                                <label>监测类型</label>
-                                <div class="checkbox-group">
-                                    <label><input type="checkbox" checked> 病害识别</label>
-                                    <label><input type="checkbox" checked> 虫害识别</label>
-                                    <label><input type="checkbox"> 杂草识别</label>
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>识别模型</label>
-                                <select class="form-control">
-                                    <option>水稻病虫害模型</option>
-                                    <option>小麦病虫害模型</option>
-                                    <option>玉米病虫害模型</option>
-                                    <option>棉花病虫害模型</option>
-                                </select>
-                            </div>
-                            <button class="btn-success btn-block">开始AI识别</button>
-                        </div>
-                        <div class="panel-card">
-                            <h4>监测结果</h4>
-                            <div class="disease-list">
-                                <div class="disease-item severe">
-                                    <div class="disease-icon"><i class="fas fa-bug"></i></div>
-                                    <div class="disease-info">
-                                        <h5>稻飞虱</h5>
-                                        <p>检测到 23 处 | 严重程度：高</p>
-                                        <span class="location">主要分布：东北区域</span>
-                                    </div>
-                                </div>
-                                <div class="disease-item moderate">
-                                    <div class="disease-icon"><i class="fas fa-virus"></i></div>
-                                    <div class="disease-info">
-                                        <h5>稻瘟病</h5>
-                                        <p>检测到 8 处 | 严重程度：中</p>
-                                        <span class="location">主要分布：西南区域</span>
-                                    </div>
-                                </div>
-                                <div class="disease-item mild">
-                                    <div class="disease-icon"><i class="fas fa-leaf"></i></div>
-                                    <div class="disease-info">
-                                        <h5>纹枯病</h5>
-                                        <p>检测到 5 处 | 严重程度：低</p>
-                                        <span class="location">主要分布：中部区域</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="panel-card">
-                            <h4>防治建议</h4>
-                            <div class="treatment-plan">
-                                <div class="plan-item">
-                                    <h5><i class="fas fa-spray-can"></i> 稻飞虱防治</h5>
-                                    <p>推荐药剂：吡虫啉</p>
-                                    <p>用量：20ml/亩</p>
-                                    <p>施药时间：晴天傍晚</p>
-                                </div>
-                                <div class="plan-item">
-                                    <h5><i class="fas fa-spray-can"></i> 稻瘟病防治</h5>
-                                    <p>推荐药剂：三环唑</p>
-                                    <p>用量：30g/亩</p>
-                                    <p>施药时间：发病初期</p>
-                                </div>
-                            </div>
-                            <button class="btn-primary btn-block">生成防治方案</button>
-                            <button class="btn-secondary btn-block">同步到无人机</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 长势监测 -->
-            <div id="growth-page" class="page">
-                <div class="page-header">
-                    <h3>长势监测</h3>
-                    <button class="btn-primary" onclick="analyzeGrowth()">
-                        <i class="fas fa-play"></i> 开始监测
-                    </button>
-                </div>
-                <div class="growth-container">
-                    <div class="growth-main">
-                        <div class="ndvi-viewer">
-                            <canvas id="ndviCanvas" width="900" height="600"></canvas>
-                            <div class="ndvi-legend">
-                                <h5>NDVI指数</h5>
-                                <div class="gradient-bar"></div>
-                                <div class="gradient-labels">
-                                    <span>0.0</span>
-                                    <span>0.2</span>
-                                    <span>0.4</span>
-                                    <span>0.6</span>
-                                    <span>0.8</span>
-                                    <span>1.0</span>
-                                </div>
-                                <div class="legend-desc">
-                                    <p>0.6-1.0: 长势优良</p>
-                                    <p>0.4-0.6: 长势正常</p>
-                                    <p>0.2-0.4: 长势较弱</p>
-                                    <p>0.0-0.2: 长势不良</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="growth-charts">
-                            <div class="chart-card">
-                                <h4>NDVI趋势分析</h4>
-                                <canvas id="trendChart" width="400" height="200"></canvas>
-                            </div>
-                            <div class="chart-card">
-                                <h4>长势分布统计</h4>
-                                <canvas id="distributionChart" width="400" height="200"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="growth-sidebar">
-                        <div class="panel-card">
-                            <h4>监测参数</h4>
-                            <div class="form-group">
-                                <label>监测时间</label>
-                                <input type="date" class="form-control" value="2024-11-24">
-                            </div>
-                            <div class="form-group">
-                                <label>对比基准</label>
-                                <select class="form-control">
-                                    <option>上次监测（7天前）</option>
-                                    <option>历史同期</option>
-                                    <option>标准值</option>
-                                </select>
-                            </div>
-                            <button class="btn-success btn-block">生成NDVI图</button>
-                        </div>
-                        <div class="panel-card">
-                            <h4>长势统计</h4>
-                            <div class="stat-row">
-                                <span>平均NDVI</span>
-                                <strong>0.72</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>最高NDVI</span>
-                                <strong>0.89</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>最低NDVI</span>
-                                <strong>0.35</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>长势优良区</span>
-                                <strong>32.5亩 (71%)</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>长势正常区</span>
-                                <strong>10.2亩 (22%)</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>长势较弱区</span>
-                                <strong>2.9亩 (7%)</strong>
-                            </div>
-                        </div>
-                        <div class="panel-card">
-                            <h4>管理建议</h4>
-                            <div class="suggestion-list">
-                                <div class="suggestion-item">
-                                    <i class="fas fa-exclamation-circle"></i>
-                                    <p>西南角区域长势较弱，建议增施氮肥</p>
-                                </div>
-                                <div class="suggestion-item">
-                                    <i class="fas fa-info-circle"></i>
-                                    <p>整体长势良好，继续保持当前管理措施</p>
-                                </div>
-                            </div>
-                            <button class="btn-primary btn-block">生成变量施肥方案</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 产量预估 -->
-            <div id="yield-page" class="page">
-                <div class="page-header">
-                    <h3>产量预估</h3>
-                    <button class="btn-primary" onclick="estimateYield()">
-                        <i class="fas fa-calculator"></i> 开始预估
-                    </button>
-                </div>
-                <div class="yield-container">
-                    <div class="yield-main">
-                        <div class="yield-map">
-                            <canvas id="yieldCanvas" width="900" height="500"></canvas>
-                            <div class="yield-legend">
-                                <h5>产量分布（kg/亩）</h5>
-                                <div class="legend-item"><span class="color" style="background: #006837;"></span> > 600</div>
-                                <div class="legend-item"><span class="color" style="background: #31a354;"></span> 550-600</div>
-                                <div class="legend-item"><span class="color" style="background: #78c679;"></span> 500-550</div>
-                                <div class="legend-item"><span class="color" style="background: #c2e699;"></span> 450-500</div>
-                                <div class="legend-item"><span class="color" style="background: #ffffcc;"></span> < 450</div>
-                            </div>
-                        </div>
-                        <div class="yield-analysis">
-                            <div class="analysis-card">
-                                <h4>穗数统计</h4>
-                                <div class="big-number">
-                                    <span class="number">285,600</span>
-                                    <span class="unit">穗</span>
-                                </div>
-                                <p>AI自动识别统计</p>
-                            </div>
-                            <div class="analysis-card">
-                                <h4>预估总产量</h4>
-                                <div class="big-number">
-                                    <span class="number">25,340</span>
-                                    <span class="unit">kg</span>
-                                </div>
-                                <p>基于历史数据模型</p>
-                            </div>
-                            <div class="analysis-card">
-                                <h4>平均亩产</h4>
-                                <div class="big-number">
-                                    <span class="number">555</span>
-                                    <span class="unit">kg/亩</span>
-                                </div>
-                                <p>高于区域平均15%</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="yield-sidebar">
-                        <div class="panel-card">
-                            <h4>预估参数</h4>
-                            <div class="form-group">
-                                <label>作物类型</label>
-                                <select class="form-control">
-                                    <option selected>水稻</option>
-                                    <option>小麦</option>
-                                    <option>玉米</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>生长阶段</label>
-                                <select class="form-control">
-                                    <option>抽穗期</option>
-                                    <option selected>灌浆期</option>
-                                    <option>成熟期</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>预估模型</label>
-                                <select class="form-control">
-                                    <option selected>AI深度学习模型</option>
-                                    <option>传统经验模型</option>
-                                    <option>混合模型</option>
-                                </select>
-                            </div>
-                            <button class="btn-success btn-block">重新计算</button>
-                        </div>
-                        <div class="panel-card">
-                            <h4>产量分析</h4>
-                            <div class="stat-row">
-                                <span>高产区面积</span>
-                                <strong>28.3亩 (62%)</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>中产区面积</span>
-                                <strong>14.5亩 (32%)</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>低产区面积</span>
-                                <strong>2.8亩 (6%)</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>预估误差范围</span>
-                                <strong>±5%</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>预计收获时间</span>
-                                <strong>15天后</strong>
-                            </div>
-                        </div>
-                        <div class="panel-card">
-                            <h4>收获建议</h4>
-                            <div class="suggestion-list">
-                                <div class="suggestion-item">
-                                    <i class="fas fa-calendar-check"></i>
-                                    <p>建议收获时间：12月8-10日</p>
-                                </div>
-                                <div class="suggestion-item">
-                                    <i class="fas fa-tractor"></i>
-                                    <p>预计需要收割机：2台</p>
-                                </div>
-                                <div class="suggestion-item">
-                                    <i class="fas fa-clock"></i>
-                                    <p>预计作业时间：1.5天</p>
-                                </div>
-                            </div>
-                            <button class="btn-primary btn-block">生成收获计划</button>
-                            <button class="btn-secondary btn-block">导出预估报告</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 稻麦变量施肥 -->
-            <div id="variable-fertilizer-page" class="page">
-                <div class="page-header">
-                    <h3>稻麦变量施肥</h3>
-                    <button class="btn-primary" onclick="generatePrescription()">
-                        <i class="fas fa-file-medical"></i> 生成处方图
-                    </button>
-                </div>
-                <div class="variable-container">
-                    <div class="variable-left">
-                        <div class="prescription-map">
-                            <canvas id="prescriptionCanvas" width="800" height="600"></canvas>
-                            <div class="prescription-legend">
-                                <h5>施肥量（kg/亩）</h5>
-                                <div class="legend-item"><span class="color" style="background: #d73027;"></span> 25-30</div>
-                                <div class="legend-item"><span class="color" style="background: #fc8d59;"></span> 20-25</div>
-                                <div class="legend-item"><span class="color" style="background: #fee090;"></span> 15-20</div>
-                                <div class="legend-item"><span class="color" style="background: #e0f3f8;"></span> 10-15</div>
-                                <div class="legend-item"><span class="color" style="background: #91bfdb;"></span> 5-10</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="variable-right">
-                        <div class="panel-card">
-                            <h4>处方图设置</h4>
-                            <div class="form-group">
-                                <label>肥料类型</label>
-                                <select class="form-control">
-                                    <option selected>尿素（氮肥）</option>
-                                    <option>磷酸二铵（磷肥）</option>
-                                    <option>氯化钾（钾肥）</option>
-                                    <option>复合肥</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>基准用量（kg/亩）</label>
-                                <input type="number" class="form-control" value="15">
-                            </div>
-                            <div class="form-group">
-                                <label>变量范围</label>
-                                <div class="range-input">
-                                    <input type="number" class="form-control" value="5" placeholder="最小">
-                                    <span>-</span>
-                                    <input type="number" class="form-control" value="30" placeholder="最大">
-                                </div>
-                            </div>
-                            <div class="form-group">
-                                <label>NDVI数据源</label>
-                                <select class="form-control">
-                                    <option selected>2024-11-20 监测数据</option>
-                                    <option>2024-11-15 监测数据</option>
-                                    <option>上传新数据</option>
-                                </select>
-                            </div>
-                            <button class="btn-success btn-block">生成处方图</button>
-                        </div>
-                        <div class="panel-card">
-                            <h4>用量统计</h4>
-                            <div class="stat-row">
-                                <span>总用量</span>
-                                <strong>685 kg</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>平均用量</span>
-                                <strong>15.2 kg/亩</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>节省量</span>
-                                <strong class="success">142 kg (17%)</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>节省成本</span>
-                                <strong class="success">¥426</strong>
-                            </div>
-                        </div>
-                        <div class="panel-card">
-                            <h4>作业设置</h4>
-                            <div class="form-group">
-                                <label>作业设备</label>
-                                <select class="form-control">
-                                    <option>T40农业无人机-01</option>
-                                    <option>T40农业无人机-02</option>
-                                    <option>变量施肥机-01</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>作业时间</label>
-                                <input type="datetime-local" class="form-control">
-                            </div>
-                            <button class="btn-primary btn-block">同步到设备</button>
-                            <button class="btn-secondary btn-block">下载处方图</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 变量除草 -->
-            <div id="variable-weeding-page" class="page">
-                <div class="page-header">
-                    <h3>变量除草</h3>
-                    <button class="btn-primary" onclick="generateWeedingPlan()">
-                        <i class="fas fa-file-medical"></i> 生成除草方案
-                    </button>
-                </div>
-                <div class="variable-container">
-                    <div class="variable-left">
-                        <div class="weed-detection">
-                            <canvas id="weedCanvas" width="800" height="600"></canvas>
-                            <div class="weed-legend">
-                                <h5>杂草密度</h5>
-                                <div class="legend-item"><span class="color" style="background: #8b0000;"></span> 严重</div>
-                                <div class="legend-item"><span class="color" style="background: #ff4500;"></span> 中等</div>
-                                <div class="legend-item"><span class="color" style="background: #ffa500;"></span> 轻微</div>
-                                <div class="legend-item"><span class="color" style="background: #90ee90;"></span> 无杂草</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="variable-right">
-                        <div class="panel-card">
-                            <h4>杂草识别</h4>
-                            <div class="form-group">
-                                <label>识别模型</label>
-                                <select class="form-control">
-                                    <option selected>通用杂草识别</option>
-                                    <option>禾本科杂草</option>
-                                    <option>阔叶杂草</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>识别阈值</label>
-                                <input type="range" class="form-control" min="0" max="100" value="70">
-                                <span>70%</span>
-                            </div>
-                            <button class="btn-success btn-block">开始识别</button>
-                        </div>
-                        <div class="panel-card">
-                            <h4>杂草统计</h4>
-                            <div class="weed-stats">
-                                <div class="weed-type">
-                                    <i class="fas fa-leaf"></i>
-                                    <div>
-                                        <h5>稗草</h5>
-                                        <p>覆盖率：12.5%</p>
-                                    </div>
-                                </div>
-                                <div class="weed-type">
-                                    <i class="fas fa-leaf"></i>
-                                    <div>
-                                        <h5>马唐</h5>
-                                        <p>覆盖率：8.3%</p>
-                                    </div>
-                                </div>
-                                <div class="weed-type">
-                                    <i class="fas fa-leaf"></i>
-                                    <div>
-                                        <h5>其他杂草</h5>
-                                        <p>覆盖率：5.2%</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="stat-row">
-                                <span>需除草面积</span>
-                                <strong>18.6亩 (41%)</strong>
-                            </div>
-                        </div>
-                        <div class="panel-card">
-                            <h4>除草方案</h4>
-                            <div class="form-group">
-                                <label>除草剂类型</label>
-                                <select class="form-control">
-                                    <option selected>草甘膦</option>
-                                    <option>2,4-D</option>
-                                    <option>莠去津</option>
-                                </select>
-                            </div>
-                            <div class="stat-row">
-                                <span>预计用量</span>
-                                <strong>3.2 L</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>节省量</span>
-                                <strong class="success">1.8 L (36%)</strong>
-                            </div>
-                            <button class="btn-primary btn-block">生成处方图</button>
-                            <button class="btn-secondary btn-block">同步到无人机</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 棉花化控 -->
-            <div id="cotton-control-page" class="page">
-                <div class="page-header">
-                    <h3>棉花化控</h3>
-                    <button class="btn-primary" onclick="generateCottonControl()">
-                        <i class="fas fa-file-medical"></i> 生成化控方案
-                    </button>
-                </div>
-                <div class="variable-container">
-                    <div class="variable-left">
-                        <div class="cotton-map">
-                            <canvas id="cottonCanvas" width="800" height="600"></canvas>
-                            <div class="cotton-legend">
-                                <h5>株高分布（cm）</h5>
-                                <div class="legend-item"><span class="color" style="background: #d73027;"></span> > 80</div>
-                                <div class="legend-item"><span class="color" style="background: #fc8d59;"></span> 70-80</div>
-                                <div class="legend-item"><span class="color" style="background: #fee090;"></span> 60-70</div>
-                                <div class="legend-item"><span class="color" style="background: #e0f3f8;"></span> 50-60</div>
-                                <div class="legend-item"><span class="color" style="background: #91bfdb;"></span> < 50</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="variable-right">
-                        <div class="panel-card">
-                            <h4>长势分析</h4>
-                            <div class="form-group">
-                                <label>生长阶段</label>
-                                <select class="form-control">
-                                    <option>苗期</option>
-                                    <option selected>蕾期</option>
-                                    <option>花铃期</option>
-                                </select>
-                            </div>
-                            <div class="stat-row">
-                                <span>平均株高</span>
-                                <strong>68.5 cm</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>最高株高</span>
-                                <strong>85.2 cm</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>最低株高</span>
-                                <strong>52.3 cm</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>株高差异</span>
-                                <strong class="warning">32.9 cm</strong>
-                            </div>
-                        </div>
-                        <div class="panel-card">
-                            <h4>化控方案</h4>
-                            <div class="form-group">
-                                <label>化控剂类型</label>
-                                <select class="form-control">
-                                    <option selected>缩节胺</option>
-                                    <option>甲哌鎓</option>
-                                    <option>复配制剂</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>基准用量（g/亩）</label>
-                                <input type="number" class="form-control" value="3">
-                            </div>
-                            <div class="stat-row">
-                                <span>高用量区</span>
-                                <strong>12.3亩 (5-6g/亩)</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>标准用量区</span>
-                                <strong>25.8亩 (3-4g/亩)</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>低用量区</span>
-                                <strong>7.5亩 (1-2g/亩)</strong>
-                            </div>
-                            <button class="btn-success btn-block">生成处方图</button>
-                        </div>
-                        <div class="panel-card">
-                            <h4>作业参数</h4>
-                            <div class="form-group">
-                                <label>作业设备</label>
-                                <select class="form-control">
-                                    <option>T40农业无人机-01</option>
-                                    <option>T40农业无人机-02</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>喷洒流量（L/min）</label>
-                                <input type="number" class="form-control" value="6" step="0.5">
-                            </div>
-                            <div class="form-group">
-                                <label>飞行速度（m/s）</label>
-                                <input type="number" class="form-control" value="5" step="0.5">
-                            </div>
-                            <button class="btn-primary btn-block">同步到无人机</button>
-                            <button class="btn-secondary btn-block">下载方案</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 果园航测 -->
-            <div id="orchard-survey-page" class="page">
-                <div class="page-header">
-                    <h3>果园航测</h3>
-                    <button class="btn-primary" onclick="startOrchardSurvey()">
-                        <i class="fas fa-plane"></i> 开始航测
-                    </button>
-                </div>
-                <div class="survey-container">
-                    <div class="survey-main">
-                        <div class="survey-map">
-                            <canvas id="orchardCanvas" width="900" height="600"></canvas>
-                            <div class="survey-tools">
-                                <button class="tool-btn"><i class="fas fa-expand"></i> 全屏</button>
-                                <button class="tool-btn"><i class="fas fa-layer-group"></i> 图层</button>
-                                <button class="tool-btn"><i class="fas fa-ruler"></i> 测量</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="survey-sidebar">
-                        <div class="panel-card">
-                            <h4>航测参数</h4>
-                            <div class="form-group">
-                                <label>果园类型</label>
-                                <select class="form-control">
-                                    <option selected>山地果园</option>
-                                    <option>平原果园</option>
-                                    <option>丘陵果园</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>果树类型</label>
-                                <select class="form-control">
-                                    <option>苹果</option>
-                                <option selected>柑橘</option>
-                                    <option>梨</option>
-                                    <option>桃</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>航测模式</label>
-                                <select class="form-control">
-                                    <option selected>三维建模</option>
-                                    <option>正射影像</option>
-                                    <option>倾斜摄影</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>飞行高度（米）</label>
-                                <input type="number" class="form-control" value="30" min="10" max="100">
-                            </div>
-                            <div class="form-group">
-                                <label>地形跟随</label>
-                                <select class="form-control">
-                                    <option selected>开启（推荐）</option>
-                                    <option>关闭</option>
-                                </select>
-                            </div>
-                            <button class="btn-success btn-block">生成航测任务</button>
-                        </div>
-                        <div class="panel-card">
-                            <h4>任务信息</h4>
-                            <div class="stat-row">
-                                <span>航测面积</span>
-                                <strong>28.5 亩</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>预计航点</span>
-                                <strong>156 个</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>预计照片</span>
-                                <strong>468 张</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>预计时长</span>
-                                <strong>25 分钟</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>电池消耗</span>
-                                <strong>2 块</strong>
-                            </div>
-                        </div>
-                        <div class="panel-card">
-                            <h4>设备状态</h4>
-                            <div class="device-status">
-                                <div class="status-item">
-                                    <i class="fas fa-drone"></i>
-                                    <div>
-                                        <h5>M300 RTK</h5>
-                                        <span class="status-badge online">在线</span>
-                                    </div>
-                                </div>
-                                <div class="status-item">
-                                    <i class="fas fa-battery-full"></i>
-                                    <div>
-                                        <h5>电池电量</h5>
-                                        <span>95%</span>
-                                    </div>
-                                </div>
-                                <div class="status-item">
-                                    <i class="fas fa-satellite"></i>
-                                    <div>
-                                        <h5>GPS信号</h5>
-                                        <span class="status-badge online">优秀</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <button class="btn-primary btn-block">开始航测</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 平台三维航线 -->
-            <div id="3d-route-page" class="page">
-                <div class="page-header">
-                    <h3>平台三维航线规划</h3>
-                    <button class="btn-primary" onclick="create3DRoute()">
-                        <i class="fas fa-plus"></i> 新建航线
-                    </button>
-                </div>
-                <div class="route-container">
-                    <div class="route-main">
-                        <div class="route-3d-view">
-                            <canvas id="route3DCanvas" width="900" height="600"></canvas>
-                            <div class="view-controls">
-                                <button class="control-btn"><i class="fas fa-undo"></i> 旋转</button>
-                                <button class="control-btn"><i class="fas fa-arrows-alt"></i> 平移</button>
-                                <button class="control-btn"><i class="fas fa-search-plus"></i> 缩放</button>
-                                <button class="control-btn"><i class="fas fa-cube"></i> 3D视图</button>
-                                <button class="control-btn"><i class="fas fa-map"></i> 2D视图</button>
-                            </div>
-                            <div class="elevation-profile">
-                                <h5>高程剖面图</h5>
-                                <canvas id="elevationChart" width="800" height="150"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="route-sidebar">
-                        <div class="panel-card">
-                            <h4>航线参数</h4>
-                            <div class="form-group">
-                                <label>作业类型</label>
-                                <select class="form-control">
-                                    <option>果树喷洒</option>
-                                    <option selected>果园巡检</option>
-                                    <option>授粉作业</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>飞行模式</label>
-                                <select class="form-control">
-                                    <option selected>地形跟随</option>
-                                    <option>等高飞行</option>
-                                    <option>仿地飞行</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label>相对高度（米）</label>
-                                <input type="number" class="form-control" value="3" min="1" max="10" step="0.5">
-                            </div>
-                            <div class="form-group">
-                                <label>飞行速度（m/s）</label>
-                                <input type="number" class="form-control" value="3" min="1" max="7" step="0.5">
-                            </div>
-                            <div class="form-group">
-                                <label>航线间距（米）</label>
-                                <input type="number" class="form-control" value="4" min="2" max="10">
-                            </div>
-                            <div class="form-group">
-                                <label>安全高度（米）</label>
-                                <input type="number" class="form-control" value="5" min="3" max="15">
-                            </div>
-                            <button class="btn-success btn-block">生成航线</button>
-                        </div>
-                        <div class="panel-card">
-                            <h4>航线信息</h4>
-                            <div class="stat-row">
-                                <span>航线总长</span>
-                                <strong>2,856 米</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>航点数量</span>
-                                <strong>89 个</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>最高点</span>
-                                <strong>385 米</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>最低点</span>
-                                <strong>342 米</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>高差</span>
-                                <strong>43 米</strong>
-                            </div>
-                            <div class="stat-row">
-                                <span>预计时长</span>
-                                <strong>18 分钟</strong>
-                            </div>
-                        </div>
-                        <div class="panel-card">
-                            <h4>航线操作</h4>
-                            <button class="btn-primary btn-block">预览航线</button>
-                            <button class="btn-primary btn-block">同步到飞机</button>
-                            <button class="btn-secondary btn-block">导出航线文件</button>
-                            <button class="btn-secondary btn-block">保存为模板</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 山地果园作业 -->
-            <div id="mountain-operation-page" class="page">
-                <div class="page-header">
-                    <h3>山地果园作业</h3>
-                    <button class="btn-primary" onclick="startMountainOperation()">
-                        <i class="fas fa-play"></i> 开始作业
-                    </button>
-                </div>
-                <div class="operation-container">
-                    <div class="operation-main">
-                        <div class="operation-monitor">
-                            <canvas id="mountainCanvas" width="900" height="500"></canvas>
-                            <div class="monitor-overlay">
-                                <div class="flight-info">
-                                    <div class="info-item">
-                                        <label>飞行高度</label>
-                                        <span class="value">3.2m</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <label>飞行速度</label>
-                                        <span class="value">3.5m/s</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <label>剩余电量</label>
-                                        <span class="value">78%</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <label>作业进度</label>
-                                        <span class="value">45%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="operation-progress">
-                            <h4>作业进度</h4>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: 45%;"></div>
-                            </div>
-                            <div class="progress-stats">
-                                <span>已完成：12.8亩</span>
-                                <span>剩余：15.7亩</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="operation-sidebar">
-                        <div class="panel-card">
-                            <h4>作业参数</h4>
-                            <div class="param-display">
-                                <div class="param-item">
-                                    <i class="fas fa-tint"></i>
-                                    <div>
-                                        <label>喷洒流量</label>
-                                        <span>6.0 L/min</span>
-                                    </div>
-                                </div>
-                                <div class="param-item">
-                                    <i class="fas fa-wind"></i>
-                                    <div>
-                                        <label>风速</label>
-                                        <span>2.3 m/s</span>
-                                    </div>
-                                </div>
-                                <div class="param-item">
-                                    <i class="fas fa-thermometer-half"></i>
-                                    <div>
-                                        <label>温度</label>
-                                        <span>25°C</span>
-                                    </div>
-                                </div>
-                                <div class="param-item">
-                                    <i class="fas fa-tachometer-alt"></i>
-                                    <div>
-                                        <label>作业效率</label>
-                                        <span>8.5 亩/小时</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="panel-card">
-                            <h4>设备状态</h4>
-                            <div class="device-list">
-                                <div class="device-item active">
-                                    <i class="fas fa-drone"></i>
-                                    <div>
-                                        <h5>T40-01</h5>
-                                        <span class="status-badge online">作业中</span>
-                                    </div>
-                                </div>
-                                <div class="device-item">
-                                    <i class="fas fa-drone"></i>
-                                    <div>
-                                        <h5>T40-02</h5>
-                                        <span class="status-badge standby">待命</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="panel-card">
-                            <h4>安全监控</h4>
-                            <div class="safety-alerts">
-                                <div class="alert-item success">
-                                    <i class="fas fa-check-circle"></i>
-                                    <p>地形跟随正常</p>
-                                </div>
-                                <div class="alert-item success">
-                                    <i class="fas fa-check-circle"></i>
-                                    <p>避障系统正常</p>
-                                </div>
-                                <div class="alert-item success">
-                                    <i class="fas fa-check-circle"></i>
-                                    <p>GPS信号良好</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="panel-card">
-                            <h4>作业控制</h4>
-                            <button class="btn-warning btn-block">暂停作业</button>
-                            <button class="btn-danger btn-block">紧急返航</button>
-                            <button class="btn-secondary btn-block">切换设备</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 作业数据回溯 -->
-            <div id="data-trace-page" class="page">
-                <div class="page-header">
-                    <h3>作业数据回溯</h3>
-                    <div class="header-actions">
-                        <input type="date" class="form-control" style="width: auto;">
-                        <button class="btn-primary"><i class="fas fa-search"></i> 查询</button>
-                        <button class="btn-secondary"><i class="fas fa-download"></i> 导出</button>
-                    </div>
-                </div>
-                <div class="trace-container">
-                    <div class="filter-panel">
-                        <div class="filter-group">
-                            <label>作业类型</label>
-                            <select class="form-control">
-                                <option>全部</option>
-                                <option>施肥</option>
-                                <option>喷药</option>
-                                <option>播种</option>
-                                <option>巡田</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>地块</label>
-                            <select class="form-control">
-                                <option>全部地块</option>
-                                <option>A区-01</option>
-                                <option>A区-02</option>
-                                <option>B区-01</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>设备</label>
-                            <select class="form-control">
-                                <option>全部设备</option>
-                                <option>T40-01</option>
-                                <option>T40-02</option>
-                                <option>M300-01</option>
-                            </select>
-                        </div>
-                        <div class="filter-group">
-                            <label>操作员</label>
-                            <select class="form-control">
-                                <option>全部</option>
-                                <option>张三</option>
-                                <option>李四</option>
-                                <option>王五</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="trace-table">
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>作业时间</th>
-                                    <th>作业类型</th>
-                                    <th>地块</th>
-                                    <th>作业面积</th>
-                                    <th>设备</th>
-                                    <th>操作员</th>
-                                    <th>用量/参数</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>2024-11-24 14:30</td>
-                                    <td><span class="tag tag-fertilizer">变量施肥</span></td>
-                                    <td>A区-01</td>
-                                    <td>45.6亩</td>
-                                    <td>T40-01</td>
-                                    <td>张三</td>
-                                    <td>尿素 120kg</td>
-                                    <td>
-                                        <button class="btn-small" onclick="viewTraceDetail(1)">详情</button>
-                                        <button class="btn-small">轨迹</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>2024-11-23 09:15</td>
-                                    <td><span class="tag tag-spray">病虫害防治</span></td>
-                                    <td>B区-01</td>
-                                    <td>52.3亩</td>
-                                    <td>T40-02</td>
-                                    <td>李四</td>
-                                    <td>吡虫啉 1.2L</td>
-                                    <td>
-                                        <button class="btn-small" onclick="viewTraceDetail(2)">详情</button>
-                                        <button class="btn-small">轨迹</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>2024-11-22 16:20</td>
-                                    <td><span class="tag tag-survey">航测巡田</span></td>
-                                    <td>A区-02</td>
-                                    <td>38.2亩</td>
-                                    <td>M300-01</td>
-                                    <td>王五</td>
-                                    <td>-</td>
-                                    <td>
-                                        <button class="btn-small" onclick="viewTraceDetail(3)">详情</button>
-                                        <button class="btn-small">轨迹</button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>2024-11-21 10:45</td>
-                                    <td><span class="tag tag-weeding">变量除草</span></td>
-                                    <td>A区-01</td>
-                                    <td>45.6亩</td>
-                                    <td>T40-01</td>
-                                    <td>张三</td>
-                                    <td>草甘膦 2.8L</td>
-                                    <td>
-                                        <button class="btn-small" onclick="viewTraceDetail(4)">详情</button>
-                                        <button class="btn-small">轨迹</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="pagination">
-                        <button class="btn-small">上一页</button>
-                        <span>第 1 页 / 共 15 页</span>
-                        <button class="btn-small">下一页</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 农机实时监管 -->
-            <div id="realtime-monitor-page" class="page">
-                <div class="page-header">
-                    <h3>农机实时监管</h3>
-                    <div class="header-actions">
-                        <button class="btn-primary"><i class="fas fa-sync"></i> 刷新</button>
-                        <button class="btn-secondary"><i class="fas fa-cog"></i> 设置</button>
-                    </div>
-                </div>
-                <div class="monitor-layout">
-                    <div class="monitor-map-container">
-                        <div class="realtime-map">
-                            <canvas id="realtimeCanvas" width="1000" height="700"></canvas>
-                            <div class="map-legend">
-                                <h5>设备状态</h5>
-                                <div class="legend-item"><span class="dot working"></span> 作业中</div>
-                                <div class="legend-item"><span class="dot standby"></span> 待命</div>
-                                <div class="legend-item"><span class="dot offline"></span> 离线</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="monitor-device-list">
-                        <h4>设备列表</h4>
-                        <div class="device-cards">
-                            <div class="device-card working">
-                                <div class="device-header">
-                                    <h5><i class="fas fa-drone"></i> T40-01</h5>
-                                    <span class="status-badge working">作业中</span>
-                                </div>
-                                <div class="device-info">
-                                    <p><i class="fas fa-map-marker-alt"></i> A区-01号地块</p>
-                                    <p><i class="fas fa-user"></i> 操作员：张三</p>
-                                    <p><i class="fas fa-tasks"></i> 变量施肥</p>
-                                    <p><i class="fas fa-battery-three-quarters"></i> 电量：78%</p>
-                                    <p><i class="fas fa-chart-line"></i> 进度：45%</p>
-                                </div>
-                                <div class="device-actions">
-                                    <button class="btn-small">查看详情</button>
-                                    <button class="btn-small">视频监控</button>
-                                </div>
-                            </div>
-                            <div class="device-card working">
-                                <div class="device-header">
-                                    <h5><i class="fas fa-drone"></i> T40-02</h5>
-                                    <span class="status-badge working">作业中</span>
-                                </div>
-                                <div class="device-info">
-                                    <p><i class="fas fa-map-marker-alt"></i> B区-01号地块</p>
-                                    <p><i class="fas fa-user"></i> 操作员：李四</p>
-                                    <p><i class="fas fa-tasks"></i> 病虫害防治</p>
-                                    <p><i class="fas fa-battery-full"></i> 电量：92%</p>
-                                    <p><i class="fas fa-chart-line"></i> 进度：28%</p>
-                                </div>
-                                <div class="device-actions">
-                                    <button class="btn-small">查看详情</button>
-                                    <button class="btn-small">视频监控</button>
-                                </div>
-                            </div>
-                            <div class="device-card standby">
-                                <div class="device-header">
-                                    <h5><i class="fas fa-drone"></i> M300-01</h5>
-                                    <span class="status-badge standby">待命</span>
-                                </div>
-                                <div class="device-info">
-                                    <p><i class="fas fa-map-marker-alt"></i> 基地</p>
-                                    <p><i class="fas fa-user"></i> 操作员：王五</p>
-                                    <p><i class="fas fa-tasks"></i> 无任务</p>
-                                    <p><i class="fas fa-battery-full"></i> 电量：100%</p>
-                                </div>
-                                <div class="device-actions">
-                                    <button class="btn-small">分配任务</button>
-                                    <button class="btn-small">查看详情</button>
-                                </div>
-                            </div>
-                            <div class="device-card offline">
-                                <div class="device-header">
-                                    <h5><i class="fas fa-drone"></i> T40-03</h5>
-                                    <span class="status-badge offline">离线</span>
-                                </div>
-                                <div class="device-info">
-                                    <p><i class="fas fa-map-marker-alt"></i> 未知位置</p>
-                                    <p><i class="fas fa-clock"></i> 离线时间：2小时</p>
-                                </div>
-                                <div class="device-actions">
-                                    <button class="btn-small btn-danger">检查设备</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 作业质量监管 -->
-            <div id="quality-control-page" class="page">
-                <div class="page-header">
-                    <h3>作业质量监管</h3>
-                    <button class="btn-primary" onclick="addQualityRule()">
-                        <i class="fas fa-plus"></i> 添加监管规则
-                    </button>
-                </div>
-                <div class="quality-container">
-                    <div class="quality-rules">
-                        <h4>监管规则设置</h4>
-                        <div class="rule-list">
-                            <div class="rule-card">
-                                <div class="rule-header">
-                                    <h5>施肥作业标准</h5>
-                                    <label class="switch">
-                                        <input type="checkbox" checked>
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-                                <div class="rule-content">
-                                    <div class="rule-item">
-                                        <label>飞行高度</label>
-                                        <span>2-4米</span>
-                                    </div>
-                                    <div class="rule-item">
-                                        <label>飞行速度</label>
-                                        <span>3-6 m/s</span>
-                                    </div>
-                                    <div class="rule-item">
-                                        <label>喷洒流量</label>
-                                        <span>4-8 L/min</span>
-                                    </div>
-                                    <div class="rule-item">
-                                        <label>重喷率</label>
-                                        <span>≤ 5%</span>
-                                    </div>
-                                    <div class="rule-item">
-                                        <label>漏喷率</label>
-                                        <span>≤ 3%</span>
-                                    </div>
-                                </div>
-                                <div class="rule-actions">
-                                    <button class="btn-small">编辑</button>
-                                    <button class="btn-small btn-danger">删除</button>
-                                </div>
-                            </div>
-                            <div class="rule-card">
-                                <div class="rule-header">
-                                    <h5>喷药作业标准</h5>
-                                    <label class="switch">
-                                        <input type="checkbox" checked>
-                                        <span class="slider"></span>
-                                    </label>
-                                </div>
-                                <div class="rule-content">
-                                    <div class="rule-item">
-                                        <label>飞行高度</label>
-                                        <span>1.5-3米</span>
-                                    </div>
-                                    <div class="rule-item">
-                                        <label>飞行速度</label>
-                                        <span>2-5 m/s</span>
-                                    </div>
-                                    <div class="rule-item">
-                                        <label>喷洒流量</label>
-                                        <span>3-6 L/min</span>
-                                    </div>
-                                    <div class="rule-item">
-                                        <label>风速限制</label>
-                                        <span>≤ 4 m/s</span>
-                                    </div>
-                                </div>
-                                <div class="rule-actions">
-                                    <button class="btn-small">编辑</button>
-                                    <button class="btn-small btn-danger">删除</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="quality-monitor">
-                        <h4>实时质量监控</h4>
-                        <div class="quality-alerts">
-                            <div class="alert-card warning">
-                                <div class="alert-icon">
-                                    <i class="fas fa-exclamation-triangle"></i>
-                                </div>
-                                <div class="alert-content">
-                                    <h5>飞行高度异常</h5>
-                                    <p>设备：T40-01 | 地块：A区-01</p>
-                                    <p>当前高度：5.2米（超出标准范围）</p>
-                                    <span class="time">2分钟前</span>
-                                </div>
-                                <div class="alert-actions">
-                                    <button class="btn-small">查看</button>
-                                    <button class="btn-small">通知操作员</button>
-                                </div>
-                            </div>
-                            <div class="alert-card danger">
-                                <div class="alert-icon">
-                                    <i class="fas fa-times-circle"></i>
-                                </div>
-                                <div class="alert-content">
-                                    <h5>重喷率超标</h5>
-                                    <p>设备：T40-02 | 地块：B区-01</p>
-                                    <p>当前重喷率：8.5%（标准≤5%）</p>
-                                    <span class="time">5分钟前</span>
-                                </div>
-                                <div class="alert-actions">
-                                    <button class="btn-small">查看</button>
-                                    <button class="btn-small">通知操作员</button>
-                                </div>
-                            </div>
-                            <div class="alert-card info">
-                                <div class="alert-icon">
-                                    <i class="fas fa-info-circle"></i>
-                                </div>
-                                <div class="alert-content">
-                                    <h5>作业质量良好</h5>
-                                    <p>设备：M300-01 | 地块：C区果园</p>
-                                    <p>所有参数均在标准范围内</p>
-                                    <span class="time">10分钟前</span>
-                                </div>
-                                <div class="alert-actions">
-                                    <button class="btn-small">查看详情</button>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="quality-stats">
-                            <h4>质量统计（今日）</h4>
-                            <div class="stats-grid">
-                                <div class="stat-item">
-                                    <div class="stat-value success">95%</div>
-                                    <div class="stat-label">合格率</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value warning">12</div>
-                                    <div class="stat-label">警告次数</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value danger">3</div>
-                                    <div class="stat-label">违规次数</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-value">42</div>
-                                    <div class="stat-label">作业次数</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            <!-- 结束 content-wrapper -->
         </div>
-    </div>
+        <!-- 结束 main-content -->
 
-    <script src="script.js"></script>
+        <script src="script.js"></script>
 </body>
+
 </html>
