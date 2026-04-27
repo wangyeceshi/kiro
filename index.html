@@ -26,6 +26,13 @@
                 <span>控制台</span>
             </a>
             <div class="nav-group">
+                <div class="nav-group-title">设备管理</div>
+                <a href="#device-connect" class="nav-item" onclick="showPage('device-connect')">
+                    <i class="fas fa-plug"></i>
+                    <span>设备连接</span>
+                </a>
+            </div>
+            <div class="nav-group">
                 <div class="nav-group-title">农田信息管理</div>
                 <a href="#image-reconstruction" class="nav-item" onclick="showPage('image-reconstruction', this)">
                     <i class="fas fa-image"></i>
@@ -50,9 +57,10 @@
                     <i class="fas fa-seedling"></i>
                     <span>出苗分析</span>
                 </a>
-                <a href="#patrol" class="nav-item" onclick="showPage('patrol')">
-                    <i class="fas fa-search"></i>
-                    <span>高效巡田</span>
+
+                <a href="#pest-monitor" class="nav-item" onclick="showPage('pest-monitor')">
+                    <i class="fas fa-bug"></i>
+                    <span>病虫害监测</span>
                 </a>
                 <a href="#growth" class="nav-item" onclick="showPage('growth')">
                     <i class="fas fa-chart-line"></i>
@@ -78,21 +86,7 @@
                     <span>棉花化控</span>
                 </a>
             </div>
-            <div class="nav-group">
-                <div class="nav-group-title">生成三维航线</div>
-                <a href="#orchard-survey" class="nav-item" onclick="showPage('orchard-survey')">
-                    <i class="fas fa-apple-alt"></i>
-                    <span>果园航测</span>
-                </a>
-                <a href="#3d-route" class="nav-item" onclick="showPage('3d-route')">
-                    <i class="fas fa-route"></i>
-                    <span>平台三维航线</span>
-                </a>
-                <a href="#mountain-operation" class="nav-item" onclick="showPage('mountain-operation')">
-                    <i class="fas fa-mountain"></i>
-                    <span>山地果园作业</span>
-                </a>
-            </div>
+
             <div class="nav-group">
                 <div class="nav-group-title">数据化监管</div>
                 <a href="#data-trace" class="nav-item" onclick="showPage('data-trace')">
@@ -108,6 +102,7 @@
                     <span>作业质量监管</span>
                 </a>
             </div>
+
         </nav>
     </div>
 
@@ -196,6 +191,22 @@
         <div class="content-wrapper">
             <!-- 控制台 -->
             <div id="dashboard-page" class="page active">
+                <!-- 设备连接快览 -->
+                <div class="device-connect-bar" onclick="showPage('device-connect')" title="前往设备连接管理">
+                    <div class="dcb-title"><i class="fas fa-plug"></i> 设备连接</div>
+                    <div class="dcb-stats">
+                        <span class="dcb-item dcb-connected"><i class="fas fa-check-circle"></i> 已连接 <strong
+                                id="dcb-count-connected">3</strong></span>
+                        <span class="dcb-item dcb-standby"><i class="fas fa-pause-circle"></i> 待机 <strong
+                                id="dcb-count-standby">2</strong></span>
+                        <span class="dcb-item dcb-offline"><i class="fas fa-times-circle"></i> 离线 <strong
+                                id="dcb-count-offline">1</strong></span>
+                        <span class="dcb-item dcb-error"><i class="fas fa-exclamation-circle"></i> 故障 <strong
+                                id="dcb-count-error">1</strong></span>
+                    </div>
+                    <div class="dcb-action"><i class="fas fa-chevron-right"></i> 管理设备</div>
+                </div>
+
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
@@ -285,15 +296,6 @@
                                     <h4>B区地块 - 出苗分析</h4>
                                     <p>作业面积：32.8亩 | 操作员：李四</p>
                                     <span class="time">5小时前</span>
-                                </div>
-                                <span class="status completed">已完成</span>
-                            </div>
-                            <div class="operation-item">
-                                <div class="operation-icon"><i class="fas fa-route"></i></div>
-                                <div class="operation-info">
-                                    <h4>C区果园 - 三维航线规划</h4>
-                                    <p>作业面积：28.3亩 | 操作员：王五</p>
-                                    <span class="time">1天前</span>
                                 </div>
                                 <span class="status completed">已完成</span>
                             </div>
@@ -589,8 +591,10 @@
                             <button class="tool-btn" title="测量"><i class="fas fa-ruler"></i></button>
                             <button class="tool-btn" title="标注"><i class="fas fa-map-pin"></i></button>
                             <div class="tool-divider"></div>
-                            <button class="tool-btn map-layer-btn" id="streetMapBtn" title="街道地图"><i class="fas fa-map"></i></button>
-                            <button class="tool-btn map-layer-btn" id="satelliteMapBtn" title="卫星地图"><i class="fas fa-satellite"></i></button>
+                            <button class="tool-btn map-layer-btn" id="streetMapBtn" title="街道地图"><i
+                                    class="fas fa-map"></i></button>
+                            <button class="tool-btn map-layer-btn" id="satelliteMapBtn" title="卫星地图"><i
+                                    class="fas fa-satellite"></i></button>
                         </div>
                         <div id="farmland-planning-map" class="map-container large" style="height: 600px;">
                             <!-- 真实地图将在这里加载 -->
@@ -899,10 +903,14 @@
                                 <div id="seedling-map" style="height: 600px; width: 100%;"></div>
                             </div>
                             <div class="viewer-tools">
-                                <button class="tool-btn" onclick="seedlingZoomIn()" title="放大"><i class="fas fa-search-plus"></i></button>
-                                <button class="tool-btn" onclick="seedlingZoomOut()" title="缩小"><i class="fas fa-search-minus"></i></button>
-                                <button class="tool-btn" onclick="seedlingResetView()" title="重置视图"><i class="fas fa-sync"></i></button>
-                                <button class="tool-btn" onclick="toggleSeedlingMarkers()" title="显示/隐藏标记"><i class="fas fa-eye"></i></button>
+                                <button class="tool-btn" onclick="seedlingZoomIn()" title="放大"><i
+                                        class="fas fa-search-plus"></i></button>
+                                <button class="tool-btn" onclick="seedlingZoomOut()" title="缩小"><i
+                                        class="fas fa-search-minus"></i></button>
+                                <button class="tool-btn" onclick="seedlingResetView()" title="重置视图"><i
+                                        class="fas fa-sync"></i></button>
+                                <button class="tool-btn" onclick="toggleSeedlingMarkers()" title="显示/隐藏标记"><i
+                                        class="fas fa-eye"></i></button>
                             </div>
                         </div>
                         <div class="analysis-right">
@@ -976,98 +984,6 @@
                     </div>
                 </div>
 
-                <!-- 高效巡田 -->
-                <div id="patrol-page" class="page">
-                    <div class="page-header">
-                        <h3>高效巡田 - 病虫害监测</h3>
-                        <button class="btn-primary" onclick="startPatrol()">
-                            <i class="fas fa-play"></i> 开始巡田
-                        </button>
-                    </div>
-                    <div class="patrol-container">
-                        <div class="patrol-map">
-                            <canvas id="patrolCanvas" width="1000" height="600"></canvas>
-                            <div class="patrol-legend">
-                                <h5>病虫害等级</h5>
-                                <div class="legend-item"><span class="dot severe"></span> 严重</div>
-                                <div class="legend-item"><span class="dot moderate"></span> 中等</div>
-                                <div class="legend-item"><span class="dot mild"></span> 轻微</div>
-                                <div class="legend-item"><span class="dot normal"></span> 正常</div>
-                            </div>
-                        </div>
-                        <div class="patrol-panel">
-                            <div class="panel-card">
-                                <h4>巡田设置</h4>
-                                <div class="form-group">
-                                    <label>监测类型</label>
-                                    <div class="checkbox-group">
-                                        <label><input type="checkbox" checked> 病害识别</label>
-                                        <label><input type="checkbox" checked> 虫害识别</label>
-                                        <label><input type="checkbox"> 杂草识别</label>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label>识别模型</label>
-                                    <select class="form-control">
-                                        <option>水稻病虫害模型</option>
-                                        <option>小麦病虫害模型</option>
-                                        <option>玉米病虫害模型</option>
-                                        <option>棉花病虫害模型</option>
-                                    </select>
-                                </div>
-                                <button class="btn-success btn-block">开始AI识别</button>
-                            </div>
-                            <div class="panel-card">
-                                <h4>监测结果</h4>
-                                <div class="disease-list">
-                                    <div class="disease-item severe">
-                                        <div class="disease-icon"><i class="fas fa-bug"></i></div>
-                                        <div class="disease-info">
-                                            <h5>稻飞虱</h5>
-                                            <p>检测到 23 处 | 严重程度：高</p>
-                                            <span class="location">主要分布：东北区域</span>
-                                        </div>
-                                    </div>
-                                    <div class="disease-item moderate">
-                                        <div class="disease-icon"><i class="fas fa-virus"></i></div>
-                                        <div class="disease-info">
-                                            <h5>稻瘟病</h5>
-                                            <p>检测到 8 处 | 严重程度：中</p>
-                                            <span class="location">主要分布：西南区域</span>
-                                        </div>
-                                    </div>
-                                    <div class="disease-item mild">
-                                        <div class="disease-icon"><i class="fas fa-leaf"></i></div>
-                                        <div class="disease-info">
-                                            <h5>纹枯病</h5>
-                                            <p>检测到 5 处 | 严重程度：低</p>
-                                            <span class="location">主要分布：中部区域</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="panel-card">
-                                <h4>防治建议</h4>
-                                <div class="treatment-plan">
-                                    <div class="plan-item">
-                                        <h5><i class="fas fa-spray-can"></i> 稻飞虱防治</h5>
-                                        <p>推荐药剂：吡虫啉</p>
-                                        <p>用量：20ml/亩</p>
-                                        <p>施药时间：晴天傍晚</p>
-                                    </div>
-                                    <div class="plan-item">
-                                        <h5><i class="fas fa-spray-can"></i> 稻瘟病防治</h5>
-                                        <p>推荐药剂：三环唑</p>
-                                        <p>用量：30g/亩</p>
-                                        <p>施药时间：发病初期</p>
-                                    </div>
-                                </div>
-                                <button class="btn-primary btn-block">生成防治方案</button>
-                                <button class="btn-secondary btn-block">同步到无人机</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- 长势监测 -->
                 <div id="growth-page" class="page">
@@ -1622,345 +1538,6 @@
                             </div>
                         </div>
 
-                        <!-- 果园航测 -->
-                        <div id="orchard-survey-page" class="page">
-                            <div class="page-header">
-                                <h3>果园航测</h3>
-                                <button class="btn-primary" onclick="startOrchardSurvey()">
-                                    <i class="fas fa-plane"></i> 开始航测
-                                </button>
-                            </div>
-                            <div class="survey-container">
-                                <div class="survey-main">
-                                    <div class="survey-map">
-                                        <canvas id="orchardCanvas" width="900" height="600"></canvas>
-                                        <div class="survey-tools">
-                                            <button class="tool-btn"><i class="fas fa-expand"></i> 全屏</button>
-                                            <button class="tool-btn"><i class="fas fa-layer-group"></i> 图层</button>
-                                            <button class="tool-btn"><i class="fas fa-ruler"></i> 测量</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="survey-sidebar">
-                                    <div class="panel-card">
-                                        <h4>航测参数</h4>
-                                        <div class="form-group">
-                                            <label>果园类型</label>
-                                            <select class="form-control">
-                                                <option selected>山地果园</option>
-                                                <option>平原果园</option>
-                                                <option>丘陵果园</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>果树类型</label>
-                                            <select class="form-control">
-                                                <option>苹果</option>
-                                                <option selected>柑橘</option>
-                                                <option>梨</option>
-                                                <option>桃</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>航测模式</label>
-                                            <select class="form-control">
-                                                <option selected>三维建模</option>
-                                                <option>正射影像</option>
-                                                <option>倾斜摄影</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>飞行高度（米）</label>
-                                            <input type="number" class="form-control" value="30" min="10" max="100">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>地形跟随</label>
-                                            <select class="form-control">
-                                                <option selected>开启（推荐）</option>
-                                                <option>关闭</option>
-                                            </select>
-                                        </div>
-                                        <button class="btn-success btn-block">生成航测任务</button>
-                                    </div>
-                                    <div class="panel-card">
-                                        <h4>任务信息</h4>
-                                        <div class="stat-row">
-                                            <span>航测面积</span>
-                                            <strong>28.5 亩</strong>
-                                        </div>
-                                        <div class="stat-row">
-                                            <span>预计航点</span>
-                                            <strong>156 个</strong>
-                                        </div>
-                                        <div class="stat-row">
-                                            <span>预计照片</span>
-                                            <strong>468 张</strong>
-                                        </div>
-                                        <div class="stat-row">
-                                            <span>预计时长</span>
-                                            <strong>25 分钟</strong>
-                                        </div>
-                                        <div class="stat-row">
-                                            <span>电池消耗</span>
-                                            <strong>2 块</strong>
-                                        </div>
-                                    </div>
-                                    <div class="panel-card">
-                                        <h4>设备状态</h4>
-                                        <div class="device-status">
-                                            <div class="status-item">
-                                                <i class="fas fa-drone"></i>
-                                                <div>
-                                                    <h5>M300 RTK</h5>
-                                                    <span class="status-badge online">在线</span>
-                                                </div>
-                                            </div>
-                                            <div class="status-item">
-                                                <i class="fas fa-battery-full"></i>
-                                                <div>
-                                                    <h5>电池电量</h5>
-                                                    <span>95%</span>
-                                                </div>
-                                            </div>
-                                            <div class="status-item">
-                                                <i class="fas fa-satellite"></i>
-                                                <div>
-                                                    <h5>GPS信号</h5>
-                                                    <span class="status-badge online">优秀</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <button class="btn-primary btn-block">开始航测</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 平台三维航线 -->
-                        <div id="3d-route-page" class="page">
-                            <div class="page-header">
-                                <h3>平台三维航线规划</h3>
-                                <button class="btn-primary" onclick="create3DRoute()">
-                                    <i class="fas fa-plus"></i> 新建航线
-                                </button>
-                            </div>
-                            <div class="route-container">
-                                <div class="route-main">
-                                    <div class="route-3d-view">
-                                        <canvas id="route3DCanvas" width="900" height="600"></canvas>
-                                        <div class="view-controls">
-                                            <button class="control-btn"><i class="fas fa-undo"></i> 旋转</button>
-                                            <button class="control-btn"><i class="fas fa-arrows-alt"></i> 平移</button>
-                                            <button class="control-btn"><i class="fas fa-search-plus"></i> 缩放</button>
-                                            <button class="control-btn"><i class="fas fa-cube"></i> 3D视图</button>
-                                            <button class="control-btn"><i class="fas fa-map"></i> 2D视图</button>
-                                        </div>
-                                        <div class="elevation-profile">
-                                            <h5>高程剖面图</h5>
-                                            <canvas id="elevationChart" width="800" height="150"></canvas>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="route-sidebar">
-                                    <div class="panel-card">
-                                        <h4>航线参数</h4>
-                                        <div class="form-group">
-                                            <label>作业类型</label>
-                                            <select class="form-control">
-                                                <option>果树喷洒</option>
-                                                <option selected>果园巡检</option>
-                                                <option>授粉作业</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>飞行模式</label>
-                                            <select class="form-control">
-                                                <option selected>地形跟随</option>
-                                                <option>等高飞行</option>
-                                                <option>仿地飞行</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>相对高度（米）</label>
-                                            <input type="number" class="form-control" value="3" min="1" max="10"
-                                                step="0.5">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>飞行速度（m/s）</label>
-                                            <input type="number" class="form-control" value="3" min="1" max="7"
-                                                step="0.5">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>航线间距（米）</label>
-                                            <input type="number" class="form-control" value="4" min="2" max="10">
-                                        </div>
-                                        <div class="form-group">
-                                            <label>安全高度（米）</label>
-                                            <input type="number" class="form-control" value="5" min="3" max="15">
-                                        </div>
-                                        <button class="btn-success btn-block">生成航线</button>
-                                    </div>
-                                    <div class="panel-card">
-                                        <h4>航线信息</h4>
-                                        <div class="stat-row">
-                                            <span>航线总长</span>
-                                            <strong>2,856 米</strong>
-                                        </div>
-                                        <div class="stat-row">
-                                            <span>航点数量</span>
-                                            <strong>89 个</strong>
-                                        </div>
-                                        <div class="stat-row">
-                                            <span>最高点</span>
-                                            <strong>385 米</strong>
-                                        </div>
-                                        <div class="stat-row">
-                                            <span>最低点</span>
-                                            <strong>342 米</strong>
-                                        </div>
-                                        <div class="stat-row">
-                                            <span>高差</span>
-                                            <strong>43 米</strong>
-                                        </div>
-                                        <div class="stat-row">
-                                            <span>预计时长</span>
-                                            <strong>18 分钟</strong>
-                                        </div>
-                                    </div>
-                                    <div class="panel-card">
-                                        <h4>航线操作</h4>
-                                        <button class="btn-primary btn-block">预览航线</button>
-                                        <button class="btn-primary btn-block">同步到飞机</button>
-                                        <button class="btn-secondary btn-block">导出航线文件</button>
-                                        <button class="btn-secondary btn-block">保存为模板</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- 山地果园作业 -->
-                        <div id="mountain-operation-page" class="page">
-                            <div class="page-header">
-                                <h3>山地果园作业</h3>
-                                <button class="btn-primary" onclick="startMountainOperation()">
-                                    <i class="fas fa-play"></i> 开始作业
-                                </button>
-                            </div>
-                            <div class="operation-container">
-                                <div class="operation-main">
-                                    <div class="operation-monitor">
-                                        <canvas id="mountainCanvas" width="900" height="500"></canvas>
-                                        <div class="monitor-overlay">
-                                            <div class="flight-info">
-                                                <div class="info-item">
-                                                    <label>飞行高度</label>
-                                                    <span class="value">3.2m</span>
-                                                </div>
-                                                <div class="info-item">
-                                                    <label>飞行速度</label>
-                                                    <span class="value">3.5m/s</span>
-                                                </div>
-                                                <div class="info-item">
-                                                    <label>剩余电量</label>
-                                                    <span class="value">78%</span>
-                                                </div>
-                                                <div class="info-item">
-                                                    <label>作业进度</label>
-                                                    <span class="value">45%</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="operation-progress">
-                                        <h4>作业进度</h4>
-                                        <div class="progress-bar">
-                                            <div class="progress-fill" style="width: 45%;"></div>
-                                        </div>
-                                        <div class="progress-stats">
-                                            <span>已完成：12.8亩</span>
-                                            <span>剩余：15.7亩</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="operation-sidebar">
-                                    <div class="panel-card">
-                                        <h4>作业参数</h4>
-                                        <div class="param-display">
-                                            <div class="param-item">
-                                                <i class="fas fa-tint"></i>
-                                                <div>
-                                                    <label>喷洒流量</label>
-                                                    <span>6.0 L/min</span>
-                                                </div>
-                                            </div>
-                                            <div class="param-item">
-                                                <i class="fas fa-wind"></i>
-                                                <div>
-                                                    <label>风速</label>
-                                                    <span>2.3 m/s</span>
-                                                </div>
-                                            </div>
-                                            <div class="param-item">
-                                                <i class="fas fa-thermometer-half"></i>
-                                                <div>
-                                                    <label>温度</label>
-                                                    <span>25°C</span>
-                                                </div>
-                                            </div>
-                                            <div class="param-item">
-                                                <i class="fas fa-tachometer-alt"></i>
-                                                <div>
-                                                    <label>作业效率</label>
-                                                    <span>8.5 亩/小时</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="panel-card">
-                                        <h4>设备状态</h4>
-                                        <div class="device-list">
-                                            <div class="device-item active">
-                                                <i class="fas fa-drone"></i>
-                                                <div>
-                                                    <h5>T40-01</h5>
-                                                    <span class="status-badge online">作业中</span>
-                                                </div>
-                                            </div>
-                                            <div class="device-item">
-                                                <i class="fas fa-drone"></i>
-                                                <div>
-                                                    <h5>T40-02</h5>
-                                                    <span class="status-badge standby">待命</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="panel-card">
-                                        <h4>安全监控</h4>
-                                        <div class="safety-alerts">
-                                            <div class="alert-item success">
-                                                <i class="fas fa-check-circle"></i>
-                                                <p>地形跟随正常</p>
-                                            </div>
-                                            <div class="alert-item success">
-                                                <i class="fas fa-check-circle"></i>
-                                                <p>避障系统正常</p>
-                                            </div>
-                                            <div class="alert-item success">
-                                                <i class="fas fa-check-circle"></i>
-                                                <p>GPS信号良好</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="panel-card">
-                                        <h4>作业控制</h4>
-                                        <button class="btn-warning btn-block">暂停作业</button>
-                                        <button class="btn-danger btn-block">紧急返航</button>
-                                        <button class="btn-secondary btn-block">切换设备</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- 作业数据回溯 -->
                         <div id="data-trace-page" class="page">
@@ -2334,10 +1911,854 @@
                                 </div>
                             </div>
                         </div>
+                        <!-- 病虫害监测 -->
+                        <div id="pest-monitor-page" class="page">
+                            <div class="page-header">
+                                <h3>病虫害监测</h3>
+                                <div class="header-actions">
+                                    <button class="btn-primary" onclick="startPestScan()">
+                                        <i class="fas fa-satellite-dish"></i> 开始扫描
+                                    </button>
+                                    <button class="btn-secondary" onclick="exportPestReport()">
+                                        <i class="fas fa-file-export"></i> 导出报告
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 顶部统计卡片 -->
+                            <div class="pest-stats-row">
+                                <div class="pest-stat-card danger">
+                                    <div class="pest-stat-icon"><i class="fas fa-exclamation-circle"></i></div>
+                                    <div class="pest-stat-info">
+                                        <span class="pest-stat-num" id="pest-severe-count">3</span>
+                                        <span class="pest-stat-label">重度预警</span>
+                                    </div>
+                                </div>
+                                <div class="pest-stat-card warning">
+                                    <div class="pest-stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                                    <div class="pest-stat-info">
+                                        <span class="pest-stat-num" id="pest-moderate-count">7</span>
+                                        <span class="pest-stat-label">中度预警</span>
+                                    </div>
+                                </div>
+                                <div class="pest-stat-card info">
+                                    <div class="pest-stat-icon"><i class="fas fa-info-circle"></i></div>
+                                    <div class="pest-stat-info">
+                                        <span class="pest-stat-num" id="pest-mild-count">12</span>
+                                        <span class="pest-stat-label">轻度预警</span>
+                                    </div>
+                                </div>
+                                <div class="pest-stat-card success">
+                                    <div class="pest-stat-icon"><i class="fas fa-check-circle"></i></div>
+                                    <div class="pest-stat-info">
+                                        <span class="pest-stat-num" id="pest-healthy-count">106</span>
+                                        <span class="pest-stat-label">健康地块</span>
+                                    </div>
+                                </div>
+                                <div class="pest-stat-card neutral">
+                                    <div class="pest-stat-icon"><i class="fas fa-clock"></i></div>
+                                    <div class="pest-stat-info">
+                                        <span class="pest-stat-num">2026-04-27</span>
+                                        <span class="pest-stat-label">最近扫描</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 主体：地图 + 右侧面板 -->
+                            <div class="pest-main-layout">
+                                <!-- 左侧地图区域 -->
+                                <div class="pest-map-section">
+                                    <div class="panel-card" style="padding: 0; overflow: hidden; position: relative;">
+                                        <div class="pest-map-toolbar">
+                                            <div class="pest-map-toolbar-left">
+                                                <button class="pest-tool-btn active" id="pestLayerSatellite"
+                                                    onclick="switchPestMapLayer('satellite')">
+                                                    <i class="fas fa-satellite"></i> 卫星图
+                                                </button>
+                                                <button class="pest-tool-btn" id="pestLayerStreet"
+                                                    onclick="switchPestMapLayer('street')">
+                                                    <i class="fas fa-map"></i> 街道图
+                                                </button>
+                                                <div class="pest-toolbar-divider"></div>
+                                                <button class="pest-tool-btn" onclick="togglePestHeatmap()"
+                                                    id="pestHeatmapBtn">
+                                                    <i class="fas fa-fire"></i> 热力图
+                                                </button>
+                                                <button class="pest-tool-btn" onclick="togglePestMarkers()"
+                                                    id="pestMarkersBtn">
+                                                    <i class="fas fa-map-marker-alt"></i> 标记点
+                                                </button>
+                                            </div>
+                                            <div class="pest-map-toolbar-right">
+                                                <span class="pest-map-hint"><i class="fas fa-mouse-pointer"></i>
+                                                    点击标记查看详情</span>
+                                            </div>
+                                        </div>
+                                        <div id="pest-monitor-map" style="height: 520px; width: 100%;"></div>
+                                        <!-- 地图图例 -->
+                                        <div class="pest-map-legend">
+                                            <div class="pest-legend-title">病虫害等级</div>
+                                            <div class="pest-legend-item"><span class="pest-dot severe"></span> 重度（立即处理）
+                                            </div>
+                                            <div class="pest-legend-item"><span class="pest-dot moderate"></span>
+                                                中度（3天内处理）</div>
+                                            <div class="pest-legend-item"><span class="pest-dot mild"></span> 轻度（持续观察）
+                                            </div>
+                                            <div class="pest-legend-item"><span class="pest-dot healthy"></span> 健康
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- 底部：病害图片展示 -->
+                                    <div class="panel-card" style="margin-top: 20px;">
+                                        <h4 style="margin-bottom: 15px; color: var(--dark-color);">
+                                            <i class="fas fa-images"
+                                                style="color: var(--danger-color); margin-right: 8px;"></i>
+                                            当前监测到的病虫害图像
+                                        </h4>
+                                        <div class="pest-image-gallery">
+                                            <div class="pest-image-card severe">
+                                                <img src="https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=300&h=200&fit=crop&auto=format"
+                                                    alt="稻飞虱" loading="lazy">
+                                                <div class="pest-image-info">
+                                                    <span class="pest-image-tag severe">重度</span>
+                                                    <p class="pest-image-name">稻飞虱</p>
+                                                    <p class="pest-image-loc"><i class="fas fa-map-marker-alt"></i>
+                                                        A区-01 东北角</p>
+                                                </div>
+                                            </div>
+                                            <div class="pest-image-card moderate">
+                                                <img src="https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=300&h=200&fit=crop&auto=format"
+                                                    alt="纹枯病" loading="lazy">
+                                                <div class="pest-image-info">
+                                                    <span class="pest-image-tag moderate">中度</span>
+                                                    <p class="pest-image-name">水稻纹枯病</p>
+                                                    <p class="pest-image-loc"><i class="fas fa-map-marker-alt"></i>
+                                                        A区-01 中部</p>
+                                                </div>
+                                            </div>
+                                            <div class="pest-image-card moderate">
+                                                <img src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=300&h=200&fit=crop&auto=format"
+                                                    alt="稻瘟病" loading="lazy">
+                                                <div class="pest-image-info">
+                                                    <span class="pest-image-tag moderate">中度</span>
+                                                    <p class="pest-image-name">稻瘟病</p>
+                                                    <p class="pest-image-loc"><i class="fas fa-map-marker-alt"></i>
+                                                        B区-01 西侧</p>
+                                                </div>
+                                            </div>
+                                            <div class="pest-image-card mild">
+                                                <img src="https://images.unsplash.com/photo-1500651230702-0e2d8a49d4ad?w=300&h=200&fit=crop&auto=format"
+                                                    alt="蚜虫" loading="lazy">
+                                                <div class="pest-image-info">
+                                                    <span class="pest-image-tag mild">轻度</span>
+                                                    <p class="pest-image-name">蚜虫</p>
+                                                    <p class="pest-image-loc"><i class="fas fa-map-marker-alt"></i> C区果园
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 右侧控制面板 -->
+                                <div class="pest-right-panel">
+                                    <!-- 扫描参数 -->
+                                    <div class="panel-card">
+                                        <h4><i class="fas fa-sliders-h"
+                                                style="color: var(--primary-color); margin-right: 8px;"></i>扫描参数</h4>
+                                        <div class="form-group" style="margin-top: 12px;">
+                                            <label>监测地块</label>
+                                            <select class="form-control" id="pest-field-select">
+                                                <option value="all">全部地块</option>
+                                                <option value="a01">A区-01号地块（水稻）</option>
+                                                <option value="a02">A区-02号地块（小麦）</option>
+                                                <option value="b01">B区-01号地块（水稻）</option>
+                                                <option value="c01">C区果园</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>检测模式</label>
+                                            <select class="form-control" id="pest-mode-select">
+                                                <option>AI图像识别（高精度）</option>
+                                                <option>多光谱分析</option>
+                                                <option>热红外扫描</option>
+                                                <option>综合分析</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>预警阈值</label>
+                                            <select class="form-control">
+                                                <option>严格（发病率 > 5%）</option>
+                                                <option selected>标准（发病率 > 10%）</option>
+                                                <option>宽松（发病率 > 20%）</option>
+                                            </select>
+                                        </div>
+                                        <button class="btn-success btn-block" onclick="startPestScan()"
+                                            style="margin-top: 5px;">
+                                            <i class="fas fa-search"></i> 开始扫描
+                                        </button>
+                                    </div>
+
+                                    <!-- 实时预警列表 -->
+                                    <div class="panel-card">
+                                        <h4><i class="fas fa-bell"
+                                                style="color: var(--warning-color); margin-right: 8px;"></i>实时预警
+                                        </h4>
+                                        <div class="pest-alert-list" id="pest-alert-list">
+                                            <div class="pest-alert-item severe">
+                                                <div class="pest-alert-dot severe"></div>
+                                                <div class="pest-alert-content">
+                                                    <p class="pest-alert-name">稻飞虱 — 重度</p>
+                                                    <p class="pest-alert-loc">A区-01 · 发病率 38%</p>
+                                                    <p class="pest-alert-time">今天 08:32</p>
+                                                </div>
+                                                <button class="pest-alert-btn"
+                                                    onclick="locatePest(39.3312, 117.7185)"><i
+                                                        class="fas fa-crosshairs"></i></button>
+                                            </div>
+                                            <div class="pest-alert-item severe">
+                                                <div class="pest-alert-dot severe"></div>
+                                                <div class="pest-alert-content">
+                                                    <p class="pest-alert-name">纹枯病 — 重度</p>
+                                                    <p class="pest-alert-loc">A区-01 · 发病率 31%</p>
+                                                    <p class="pest-alert-time">今天 08:35</p>
+                                                </div>
+                                                <button class="pest-alert-btn"
+                                                    onclick="locatePest(39.3298, 117.7172)"><i
+                                                        class="fas fa-crosshairs"></i></button>
+                                            </div>
+                                            <div class="pest-alert-item moderate">
+                                                <div class="pest-alert-dot moderate"></div>
+                                                <div class="pest-alert-content">
+                                                    <p class="pest-alert-name">稻瘟病 — 中度</p>
+                                                    <p class="pest-alert-loc">B区-01 · 发病率 18%</p>
+                                                    <p class="pest-alert-time">今天 09:10</p>
+                                                </div>
+                                                <button class="pest-alert-btn"
+                                                    onclick="locatePest(39.3386, 117.6952)"><i
+                                                        class="fas fa-crosshairs"></i></button>
+                                            </div>
+                                            <div class="pest-alert-item moderate">
+                                                <div class="pest-alert-dot moderate"></div>
+                                                <div class="pest-alert-content">
+                                                    <p class="pest-alert-name">二化螟 — 中度</p>
+                                                    <p class="pest-alert-loc">B区-01 · 发病率 14%</p>
+                                                    <p class="pest-alert-time">今天 09:15</p>
+                                                </div>
+                                                <button class="pest-alert-btn"
+                                                    onclick="locatePest(39.3375, 117.6945)"><i
+                                                        class="fas fa-crosshairs"></i></button>
+                                            </div>
+                                            <div class="pest-alert-item mild">
+                                                <div class="pest-alert-dot mild"></div>
+                                                <div class="pest-alert-content">
+                                                    <p class="pest-alert-name">蚜虫 — 轻度</p>
+                                                    <p class="pest-alert-loc">C区果园 · 发病率 8%</p>
+                                                    <p class="pest-alert-time">今天 10:02</p>
+                                                </div>
+                                                <button class="pest-alert-btn"
+                                                    onclick="locatePest(39.3348, 117.6845)"><i
+                                                        class="fas fa-crosshairs"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- AI防治建议 -->
+                                    <div class="panel-card">
+                                        <h4><i class="fas fa-robot"
+                                                style="color: var(--info-color); margin-right: 8px;"></i>AI防治建议
+                                        </h4>
+                                        <div class="pest-treatment-list">
+                                            <div class="pest-treatment-item">
+                                                <div class="pest-treatment-header severe">
+                                                    <i class="fas fa-bug"></i> 稻飞虱（紧急）
+                                                </div>
+                                                <div class="pest-treatment-body">
+                                                    <p><strong>推荐药剂：</strong>吡蚜酮 25% WP，用量 20g/亩</p>
+                                                    <p><strong>施药时间：</strong>今日傍晚（18:00-20:00）</p>
+                                                    <p><strong>注意事项：</strong>风速 &lt; 3m/s，避免高温时段</p>
+                                                </div>
+                                            </div>
+                                            <div class="pest-treatment-item">
+                                                <div class="pest-treatment-header moderate">
+                                                    <i class="fas fa-leaf"></i> 纹枯病
+                                                </div>
+                                                <div class="pest-treatment-body">
+                                                    <p><strong>推荐药剂：</strong>井冈霉素 5% AS，用量 100mL/亩</p>
+                                                    <p><strong>施药时间：</strong>3天内完成</p>
+                                                    <p><strong>注意事项：</strong>重点喷施茎基部</p>
+                                                </div>
+                                            </div>
+                                            <div class="pest-treatment-item">
+                                                <div class="pest-treatment-header moderate">
+                                                    <i class="fas fa-seedling"></i> 稻瘟病
+                                                </div>
+                                                <div class="pest-treatment-body">
+                                                    <p><strong>推荐药剂：</strong>三环唑 75% WP，用量 30g/亩</p>
+                                                    <p><strong>施药时间：</strong>3天内完成</p>
+                                                    <p><strong>注意事项：</strong>连续阴雨后及时施药</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button class="btn-primary btn-block" style="margin-top: 12px;"
+                                            onclick="generatePestPlan()">
+                                            <i class="fas fa-file-medical"></i> 生成完整防治方案
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 底部历史记录表格 -->
+                            <div class="panel-card" style="margin-top: 20px;">
+                                <div
+                                    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                    <h4><i class="fas fa-history"
+                                            style="color: var(--primary-color); margin-right: 8px;"></i>历史监测记录
+                                    </h4>
+                                    <div style="display: flex; gap: 10px;">
+                                        <select class="form-control" style="width: auto; padding: 6px 12px;">
+                                            <option>近7天</option>
+                                            <option>近30天</option>
+                                            <option>近3个月</option>
+                                        </select>
+                                        <button class="btn-small btn-primary"><i class="fas fa-download"></i>
+                                            导出</button>
+                                    </div>
+                                </div>
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>监测时间</th>
+                                            <th>地块</th>
+                                            <th>病虫害类型</th>
+                                            <th>发病率</th>
+                                            <th>严重程度</th>
+                                            <th>处理状态</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>2025-04-27 08:32</td>
+                                            <td>A区-01号地块</td>
+                                            <td>稻飞虱</td>
+                                            <td>38%</td>
+                                            <td><span class="status" style="background:#fde8e8;color:#c0392b;">重度</span>
+                                            </td>
+                                            <td><span class="status warning">待处理</span></td>
+                                            <td><button class="btn-small"
+                                                    onclick="viewPestDetail('稻飞虱','A区-01')">详情</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2025-04-27 09:10</td>
+                                            <td>B区-01号地块</td>
+                                            <td>稻瘟病</td>
+                                            <td>18%</td>
+                                            <td><span class="status" style="background:#fff3cd;color:#856404;">中度</span>
+                                            </td>
+                                            <td><span class="status warning">待处理</span></td>
+                                            <td><button class="btn-small"
+                                                    onclick="viewPestDetail('稻瘟病','B区-01')">详情</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2025-04-25 14:20</td>
+                                            <td>A区-01号地块</td>
+                                            <td>纹枯病</td>
+                                            <td>22%</td>
+                                            <td><span class="status" style="background:#fff3cd;color:#856404;">中度</span>
+                                            </td>
+                                            <td><span class="status completed">已处理</span></td>
+                                            <td><button class="btn-small"
+                                                    onclick="viewPestDetail('纹枯病','A区-01')">详情</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2025-04-23 10:05</td>
+                                            <td>C区果园</td>
+                                            <td>蚜虫</td>
+                                            <td>8%</td>
+                                            <td><span class="status" style="background:#d1ecf1;color:#0c5460;">轻度</span>
+                                            </td>
+                                            <td><span class="status completed">已处理</span></td>
+                                            <td><button class="btn-small"
+                                                    onclick="viewPestDetail('蚜虫','C区果园')">详情</button></td>
+                                        </tr>
+                                        <tr>
+                                            <td>2025-04-20 09:30</td>
+                                            <td>A区-02号地块</td>
+                                            <td>小麦条锈病</td>
+                                            <td>12%</td>
+                                            <td><span class="status" style="background:#fff3cd;color:#856404;">中度</span>
+                                            </td>
+                                            <td><span class="status completed">已处理</span></td>
+                                            <td><button class="btn-small"
+                                                    onclick="viewPestDetail('小麦条锈病','A区-02')">详情</button></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- 设备连接页面 -->
+                        <div id="device-connect-page" class="page">
+                            <div class="page-header">
+                                <h3>设备连接管理</h3>
+                                <div class="header-actions">
+                                    <button class="btn-primary" onclick="scanDevices()">
+                                        <i class="fas fa-search"></i> 扫描设备
+                                    </button>
+                                    <button class="btn-secondary" onclick="openAddDeviceModal()">
+                                        <i class="fas fa-plus"></i> 手动添加
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 连接状态总览 -->
+                            <div class="dc-stats-row">
+                                <div class="dc-stat-card dc-stat-connected">
+                                    <i class="fas fa-check-circle"></i>
+                                    <div>
+                                        <span class="dc-stat-num" id="dc-count-connected">3</span>
+                                        <span class="dc-stat-label">已连接</span>
+                                    </div>
+                                </div>
+                                <div class="dc-stat-card dc-stat-standby">
+                                    <i class="fas fa-pause-circle"></i>
+                                    <div>
+                                        <span class="dc-stat-num" id="dc-count-standby">2</span>
+                                        <span class="dc-stat-label">待机中</span>
+                                    </div>
+                                </div>
+                                <div class="dc-stat-card dc-stat-offline">
+                                    <i class="fas fa-times-circle"></i>
+                                    <div>
+                                        <span class="dc-stat-num" id="dc-count-offline">1</span>
+                                        <span class="dc-stat-label">离线</span>
+                                    </div>
+                                </div>
+                                <div class="dc-stat-card dc-stat-error">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    <div>
+                                        <span class="dc-stat-num" id="dc-count-error">1</span>
+                                        <span class="dc-stat-label">故障</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="dc-main-layout">
+                                <!-- 左侧：设备列表 -->
+                                <div class="dc-device-list-panel">
+                                    <!-- 筛选栏 -->
+                                    <div class="dc-filter-bar">
+                                        <div class="dc-filter-tabs">
+                                            <button class="dc-tab active"
+                                                onclick="filterDevices('all', this)">全部</button>
+                                            <button class="dc-tab"
+                                                onclick="filterDevices('connected', this)">已连接</button>
+                                            <button class="dc-tab" onclick="filterDevices('standby', this)">待机</button>
+                                            <button class="dc-tab" onclick="filterDevices('offline', this)">离线</button>
+                                        </div>
+                                        <select class="dc-brand-filter" onchange="filterByBrand(this.value)">
+                                            <option value="all">全部品牌</option>
+                                            <option value="dji">道通 Autel</option>
+                                            <option value="xag">极飞 XAG</option>
+                                            <option value="huace">华测</option>
+                                            <option value="autel">道通 Autel</option>
+                                            <option value="custom">自定义/其他</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- 设备卡片列表 -->
+                                    <div class="dc-device-cards" id="dcDeviceCards">
+                                        <!-- 道通 EVO Max - 已连接 -->
+                                        <div class="dc-device-card connected" data-id="dji-t40-01" data-brand="dji"
+                                            data-status="connected" onclick="selectDevice('dji-t40-01')">
+                                            <div class="dc-device-brand-badge dji">Autel</div>
+                                            <div class="dc-device-main">
+                                                <div class="dc-device-icon">
+                                                    <i class="fas fa-helicopter"></i>
+                                                </div>
+                                                <div class="dc-device-info">
+                                                    <div class="dc-device-name">道通 EVO Max 4T <span class="dc-sn">SN:
+                                                            AUTEL-EVO-A001</span></div>
+                                                    <div class="dc-device-model">农业植保无人机 · 40L载药量</div>
+                                                    <div class="dc-device-meta">
+                                                        <span><i class="fas fa-wifi"></i> 信号: 强</span>
+                                                        <span><i class="fas fa-battery-three-quarters"></i> 电量:
+                                                            87%</span>
+                                                        <span><i class="fas fa-map-marker-alt"></i> A区-01</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="dc-device-status-badge connected">已连接</div>
+                                        </div>
+
+                                        <!-- 道通 Dragonfish - 已连接 -->
+                                        <div class="dc-device-card connected" data-id="dji-t10-02" data-brand="dji"
+                                            data-status="connected" onclick="selectDevice('dji-t10-02')">
+                                            <div class="dc-device-brand-badge dji">Autel</div>
+                                            <div class="dc-device-main">
+                                                <div class="dc-device-icon">
+                                                    <i class="fas fa-helicopter"></i>
+                                                </div>
+                                                <div class="dc-device-info">
+                                                    <div class="dc-device-name">道通 Dragonfish Pro <span
+                                                            class="dc-sn">SN:
+                                                            AUTEL-DF-B002</span></div>
+                                                    <div class="dc-device-model">农业植保无人机 · 10L载药量</div>
+                                                    <div class="dc-device-meta">
+                                                        <span><i class="fas fa-wifi"></i> 信号: 中</span>
+                                                        <span><i class="fas fa-battery-half"></i> 电量: 52%</span>
+                                                        <span><i class="fas fa-map-marker-alt"></i> B区-01</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="dc-device-status-badge connected">已连接</div>
+                                        </div>
+
+                                        <!-- 极飞 P100 - 已连接 -->
+                                        <div class="dc-device-card connected" data-id="xag-p100-01" data-brand="xag"
+                                            data-status="connected" onclick="selectDevice('xag-p100-01')">
+                                            <div class="dc-device-brand-badge xag">XAG</div>
+                                            <div class="dc-device-main">
+                                                <div class="dc-device-icon">
+                                                    <i class="fas fa-helicopter"></i>
+                                                </div>
+                                                <div class="dc-device-info">
+                                                    <div class="dc-device-name">极飞 P100 Pro <span class="dc-sn">SN:
+                                                            XAG-P100-C003</span></div>
+                                                    <div class="dc-device-model">农业无人机 · 多光谱版</div>
+                                                    <div class="dc-device-meta">
+                                                        <span><i class="fas fa-wifi"></i> 信号: 强</span>
+                                                        <span><i class="fas fa-battery-full"></i> 电量: 96%</span>
+                                                        <span><i class="fas fa-map-marker-alt"></i> C区果园</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="dc-device-status-badge connected">已连接</div>
+                                        </div>
+
+                                        <!-- 道通 EVO II Pro - 待机 -->
+                                        <div class="dc-device-card standby" data-id="dji-m300-01" data-brand="dji"
+                                            data-status="standby" onclick="selectDevice('dji-m300-01')">
+                                            <div class="dc-device-brand-badge dji">Autel</div>
+                                            <div class="dc-device-main">
+                                                <div class="dc-device-icon">
+                                                    <i class="fas fa-drone"></i>
+                                                </div>
+                                                <div class="dc-device-info">
+                                                    <div class="dc-device-name">道通 EVO II Pro <span class="dc-sn">SN:
+                                                            AUTEL-EVO2-D004</span></div>
+                                                    <div class="dc-device-model">测绘无人机 · 双云台</div>
+                                                    <div class="dc-device-meta">
+                                                        <span><i class="fas fa-wifi"></i> 信号: 强</span>
+                                                        <span><i class="fas fa-battery-full"></i> 电量: 100%</span>
+                                                        <span><i class="fas fa-map-marker-alt"></i> 停机坪</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="dc-device-status-badge standby">待机中</div>
+                                        </div>
+
+                                        <!-- 华测 AG-600 - 待机 -->
+                                        <div class="dc-device-card standby" data-id="huace-ag600-01" data-brand="huace"
+                                            data-status="standby" onclick="selectDevice('huace-ag600-01')">
+                                            <div class="dc-device-brand-badge huace">华测</div>
+                                            <div class="dc-device-main">
+                                                <div class="dc-device-icon">
+                                                    <i class="fas fa-helicopter"></i>
+                                                </div>
+                                                <div class="dc-device-info">
+                                                    <div class="dc-device-name">华测 AG-600 <span class="dc-sn">SN:
+                                                            HC-AG600-E005</span></div>
+                                                    <div class="dc-device-model">农业植保无人机 · 60L载药量</div>
+                                                    <div class="dc-device-meta">
+                                                        <span><i class="fas fa-wifi"></i> 信号: 中</span>
+                                                        <span><i class="fas fa-battery-three-quarters"></i> 电量:
+                                                            78%</span>
+                                                        <span><i class="fas fa-map-marker-alt"></i> 停机坪</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="dc-device-status-badge standby">待机中</div>
+                                        </div>
+
+                                        <!-- 道通 EVO Max - 离线 -->
+                                        <div class="dc-device-card offline" data-id="autel-evo-01" data-brand="autel"
+                                            data-status="offline" onclick="selectDevice('autel-evo-01')">
+                                            <div class="dc-device-brand-badge autel">Autel</div>
+                                            <div class="dc-device-main">
+                                                <div class="dc-device-icon">
+                                                    <i class="fas fa-drone"></i>
+                                                </div>
+                                                <div class="dc-device-info">
+                                                    <div class="dc-device-name">道通 EVO Max 4T <span class="dc-sn">SN:
+                                                            AT-EVO-F006</span></div>
+                                                    <div class="dc-device-model">多功能无人机 · 热成像版</div>
+                                                    <div class="dc-device-meta">
+                                                        <span><i class="fas fa-wifi-slash"></i> 信号: 无</span>
+                                                        <span><i class="fas fa-battery-empty"></i> 电量: --</span>
+                                                        <span><i class="fas fa-clock"></i> 最后在线: 2小时前</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="dc-device-status-badge offline">离线</div>
+                                        </div>
+
+                                        <!-- 极飞 V50 - 故障 -->
+                                        <div class="dc-device-card error" data-id="xag-v50-01" data-brand="xag"
+                                            data-status="error" onclick="selectDevice('xag-v50-01')">
+                                            <div class="dc-device-brand-badge xag">XAG</div>
+                                            <div class="dc-device-main">
+                                                <div class="dc-device-icon">
+                                                    <i class="fas fa-helicopter"></i>
+                                                </div>
+                                                <div class="dc-device-info">
+                                                    <div class="dc-device-name">极飞 V50 <span class="dc-sn">SN:
+                                                            XAG-V50-G007</span></div>
+                                                    <div class="dc-device-model">农业植保无人机 · 50L载药量</div>
+                                                    <div class="dc-device-meta">
+                                                        <span><i class="fas fa-wifi"></i> 信号: 弱</span>
+                                                        <span><i class="fas fa-battery-quarter"></i> 电量: 12%</span>
+                                                        <span><i class="fas fa-exclamation-triangle"
+                                                                style="color:#e74c3c"></i> 电机异常</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="dc-device-status-badge error">故障</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 右侧：设备详情面板 -->
+                                <div class="dc-detail-panel" id="dcDetailPanel">
+                                    <!-- 默认提示 -->
+                                    <div class="dc-detail-placeholder" id="dcDetailPlaceholder">
+                                        <i class="fas fa-plug"></i>
+                                        <p>点击左侧设备查看详情</p>
+                                    </div>
+
+                                    <!-- 详情内容（动态填充） -->
+                                    <div class="dc-detail-content" id="dcDetailContent" style="display:none;">
+                                        <!-- 设备头部 -->
+                                        <div class="dc-detail-header">
+                                            <div class="dc-detail-icon" id="dcDetailIcon">
+                                                <i class="fas fa-helicopter"></i>
+                                            </div>
+                                            <div class="dc-detail-title">
+                                                <h4 id="dcDetailName">道通 EVO Max 4T</h4>
+                                                <p id="dcDetailModel">农业植保无人机</p>
+                                                <div id="dcDetailStatusBadge" class="dc-device-status-badge connected">
+                                                    已连接</div>
+                                            </div>
+                                            <div class="dc-detail-actions">
+                                                <button class="btn-primary btn-small" id="dcConnectBtn"
+                                                    onclick="toggleDeviceConnection()">
+                                                    <i class="fas fa-unlink"></i> 断开连接
+                                                </button>
+                                                <button class="btn-secondary btn-small" onclick="openDeviceConfig()">
+                                                    <i class="fas fa-cog"></i> 配置
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- 实时回传数据 -->
+                                        <div class="dc-section">
+                                            <div class="dc-section-title"><i class="fas fa-satellite-dish"></i> 实时回传数据
+                                            </div>
+                                            <div class="dc-telemetry-grid">
+                                                <div class="dc-telemetry-item">
+                                                    <span class="dc-tele-label">纬度</span>
+                                                    <span class="dc-tele-value" id="dcTeleLat">39.3301°N</span>
+                                                </div>
+                                                <div class="dc-telemetry-item">
+                                                    <span class="dc-tele-label">经度</span>
+                                                    <span class="dc-tele-value" id="dcTeleLng">117.7185°E</span>
+                                                </div>
+                                                <div class="dc-telemetry-item">
+                                                    <span class="dc-tele-label">飞行高度</span>
+                                                    <span class="dc-tele-value" id="dcTeleAlt">-- m</span>
+                                                </div>
+                                                <div class="dc-telemetry-item">
+                                                    <span class="dc-tele-label">飞行速度</span>
+                                                    <span class="dc-tele-value" id="dcTeleSpeed">-- m/s</span>
+                                                </div>
+                                                <div class="dc-telemetry-item">
+                                                    <span class="dc-tele-label">电池电量</span>
+                                                    <span class="dc-tele-value" id="dcTeleBattery">--%</span>
+                                                </div>
+                                                <div class="dc-telemetry-item">
+                                                    <span class="dc-tele-label">剩余药量</span>
+                                                    <span class="dc-tele-value" id="dcTeleLiquid">-- L</span>
+                                                </div>
+                                                <div class="dc-telemetry-item">
+                                                    <span class="dc-tele-label">信号强度</span>
+                                                    <span class="dc-tele-value" id="dcTeleSignal">--</span>
+                                                </div>
+                                                <div class="dc-telemetry-item">
+                                                    <span class="dc-tele-label">飞行状态</span>
+                                                    <span class="dc-tele-value" id="dcTeleFlightStatus">--</span>
+                                                </div>
+                                                <div class="dc-telemetry-item">
+                                                    <span class="dc-tele-label">本次作业面积</span>
+                                                    <span class="dc-tele-value" id="dcTeleArea">-- 亩</span>
+                                                </div>
+                                                <div class="dc-telemetry-item">
+                                                    <span class="dc-tele-label">飞行时长</span>
+                                                    <span class="dc-tele-value" id="dcTeleTime">--</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- 飞机配置信息 -->
+                                        <div class="dc-section">
+                                            <div class="dc-section-title"><i class="fas fa-sliders-h"></i> 飞机配置</div>
+                                            <div class="dc-config-grid" id="dcConfigGrid">
+                                                <!-- 动态填充 -->
+                                            </div>
+                                        </div>
+
+                                        <!-- 连接方式 -->
+                                        <div class="dc-section">
+                                            <div class="dc-section-title"><i class="fas fa-network-wired"></i> 连接方式
+                                            </div>
+                                            <div class="dc-conn-methods" id="dcConnMethods">
+                                                <!-- 动态填充 -->
+                                            </div>
+                                        </div>
+
+                                        <!-- 历史作业 -->
+                                        <div class="dc-section">
+                                            <div class="dc-section-title"><i class="fas fa-history"></i> 近期作业记录</div>
+                                            <table class="data-table" id="dcHistoryTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>日期</th>
+                                                        <th>地块</th>
+                                                        <th>作业类型</th>
+                                                        <th>面积</th>
+                                                        <th>状态</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="dcHistoryBody"></tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 兼容协议说明 -->
+                            <div class="dc-protocol-panel">
+                                <div class="dc-protocol-title"><i class="fas fa-info-circle"></i> 支持的设备品牌与连接协议</div>
+                                <div class="dc-protocol-grid">
+                                    <div class="dc-protocol-item">
+                                        <div class="dc-proto-brand dji-color">道通 Autel</div>
+                                        <div class="dc-proto-models">EVO Max 4T<br>Dragonfish Pro<br>EVO II Pro（测绘）
+                                        </div>
+                                        <div class="dc-proto-conn"><span class="dc-proto-tag">Autel SDK</span><span
+                                                class="dc-proto-tag">MSDK</span><span class="dc-proto-tag">4G图传</span>
+                                        </div>
+                                    </div>
+                                    <div class="dc-protocol-item">
+                                        <div class="dc-proto-brand xag-color">极飞 XAG</div>
+                                        <div class="dc-proto-models">P20 / P40 / P80 / P100<br>V40 / V50<br>R80 农业无人车
+                                        </div>
+                                        <div class="dc-proto-conn"><span class="dc-proto-tag">XAG API</span><span
+                                                class="dc-proto-tag">4G/5G</span><span class="dc-proto-tag">RTK</span>
+                                        </div>
+                                    </div>
+                                    <div class="dc-protocol-item">
+                                        <div class="dc-proto-brand huace-color">华测</div>
+                                        <div class="dc-proto-models">AG-600 / AG-1000<br>iCrow 系列<br>测绘无人机</div>
+                                        <div class="dc-proto-conn"><span class="dc-proto-tag">MAVLink</span><span
+                                                class="dc-proto-tag">4G</span><span class="dc-proto-tag">RTK</span>
+                                        </div>
+                                    </div>
+                                    <div class="dc-protocol-item">
+                                        <div class="dc-proto-brand autel-color">道通 Autel</div>
+                                        <div class="dc-proto-models">EVO Max 4T<br>EVO II Pro<br>Dragonfish 系列</div>
+                                        <div class="dc-proto-conn"><span class="dc-proto-tag">Autel SDK</span><span
+                                                class="dc-proto-tag">4G</span></div>
+                                    </div>
+                                    <div class="dc-protocol-item">
+                                        <div class="dc-proto-brand mavlink-color">MAVLink 兼容</div>
+                                        <div class="dc-proto-models">ArduPilot / PX4<br>自组装农业无人机<br>开源飞控平台</div>
+                                        <div class="dc-proto-conn"><span class="dc-proto-tag">MAVLink v2</span><span
+                                                class="dc-proto-tag">UDP/TCP</span><span class="dc-proto-tag">串口</span>
+                                        </div>
+                                    </div>
+                                    <div class="dc-protocol-item">
+                                        <div class="dc-proto-brand custom-color">自定义设备</div>
+                                        <div class="dc-proto-models">支持 MQTT 协议<br>支持 HTTP/WebSocket<br>自定义数据格式</div>
+                                        <div class="dc-proto-conn"><span class="dc-proto-tag">MQTT</span><span
+                                                class="dc-proto-tag">WebSocket</span><span class="dc-proto-tag">REST
+                                                API</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                     </div>
                 </div>
             </div>
+
+            <!-- 手动添加设备弹窗 -->
+            <div class="dc-modal-overlay" id="dcAddModal" style="display:none;" onclick="closeAddDeviceModal(event)">
+                <div class="dc-modal">
+                    <div class="dc-modal-header">
+                        <h4><i class="fas fa-plus-circle"></i> 添加新设备</h4>
+                        <button onclick="closeAddDeviceModal()" class="dc-modal-close"><i
+                                class="fas fa-times"></i></button>
+                    </div>
+                    <div class="dc-modal-body">
+                        <div class="form-group">
+                            <label>设备品牌</label>
+                            <select class="form-control" id="addDeviceBrand" onchange="updateAddDeviceProtocol()">
+                                <option value="dji">道通 Autel</option>
+                                <option value="xag">极飞 XAG</option>
+                                <option value="huace">华测</option>
+                                <option value="autel">道通 Autel</option>
+                                <option value="mavlink">MAVLink 兼容设备</option>
+                                <option value="custom">自定义设备</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>设备型号</label>
+                            <input type="text" class="form-control" id="addDeviceModel"
+                                placeholder="例：T40 / P100 / 自定义型号">
+                        </div>
+                        <div class="form-group">
+                            <label>序列号 (SN)</label>
+                            <input type="text" class="form-control" id="addDeviceSN" placeholder="设备序列号">
+                        </div>
+                        <div class="form-group">
+                            <label>连接方式</label>
+                            <select class="form-control" id="addDeviceProtocol">
+                                <option>DJI SDK (USB/Wi-Fi)</option>
+                                <option>4G 图传</option>
+                                <option>MAVLink UDP</option>
+                                <option>MAVLink TCP</option>
+                                <option>MQTT</option>
+                                <option>WebSocket</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>连接地址 / IP</label>
+                            <input type="text" class="form-control" id="addDeviceIP"
+                                placeholder="例：192.168.1.100 或 mqtt://broker:1883">
+                        </div>
+                        <div class="form-group">
+                            <label>备注名称</label>
+                            <input type="text" class="form-control" id="addDeviceAlias" placeholder="自定义备注（可选）">
+                        </div>
+                    </div>
+                    <div class="dc-modal-footer">
+                        <button class="btn-secondary" onclick="closeAddDeviceModal()">取消</button>
+                        <button class="btn-primary" onclick="confirmAddDevice()"><i class="fas fa-plug"></i>
+                            连接设备</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- 结束 content-wrapper -->
         </div>
         <!-- 结束 main-content -->

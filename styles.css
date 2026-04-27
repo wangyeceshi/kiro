@@ -276,6 +276,56 @@ body {
     margin-bottom: 10px;
 }
 
+/* 设备连接快览条 */
+.device-connect-bar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border-radius: 10px;
+    padding: 12px 20px;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.device-connect-bar:hover { opacity: 0.88; }
+.dcb-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #a0c4ff;
+}
+.dcb-stats {
+    display: flex;
+    gap: 18px;
+    flex: 1;
+    flex-wrap: wrap;
+}
+.dcb-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.88rem;
+    opacity: 0.9;
+}
+.dcb-connected { color: #2ecc71; }
+.dcb-standby   { color: #f39c12; }
+.dcb-offline   { color: #95a5a6; }
+.dcb-error     { color: #e74c3c; }
+.dcb-action {
+    font-size: 0.82rem;
+    color: #a0c4ff;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
 /* 统计卡片 */
 .stats-grid {
     display: grid;
@@ -3378,4 +3428,707 @@ input:checked + .slider:before {
     .analysis-right {
         width: 100%;
     }
+}
+
+
+/* ============================================
+   病虫害监测页面样式
+   ============================================ */
+
+/* 顶部统计行 */
+.pest-stats-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.pest-stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 18px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    border-left: 4px solid transparent;
+    transition: transform 0.2s;
+}
+
+.pest-stat-card:hover { transform: translateY(-3px); }
+.pest-stat-card.danger  { border-left-color: #e74c3c; }
+.pest-stat-card.warning { border-left-color: #f39c12; }
+.pest-stat-card.info    { border-left-color: #3498db; }
+.pest-stat-card.success { border-left-color: #2ecc71; }
+.pest-stat-card.neutral { border-left-color: #95a5a6; }
+
+.pest-stat-icon {
+    font-size: 1.6rem;
+    width: 44px;
+    text-align: center;
+    flex-shrink: 0;
+}
+.pest-stat-card.danger  .pest-stat-icon { color: #e74c3c; }
+.pest-stat-card.warning .pest-stat-icon { color: #f39c12; }
+.pest-stat-card.info    .pest-stat-icon { color: #3498db; }
+.pest-stat-card.success .pest-stat-icon { color: #2ecc71; }
+.pest-stat-card.neutral .pest-stat-icon { color: #95a5a6; }
+
+.pest-stat-info { display: flex; flex-direction: column; }
+.pest-stat-num  { font-size: 1.6rem; font-weight: 700; color: var(--dark-color); line-height: 1.2; }
+.pest-stat-label{ font-size: 0.82rem; color: #7f8c8d; margin-top: 2px; }
+
+/* 主体布局 */
+.pest-main-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    align-items: start;
+}
+
+.pest-map-section { display: flex; flex-direction: column; gap: 0; }
+
+/* 地图工具栏 */
+.pest-map-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.pest-map-toolbar-left { display: flex; align-items: center; gap: 8px; }
+.pest-toolbar-divider  { width: 1px; height: 24px; background: #dee2e6; margin: 0 4px; }
+
+.pest-tool-btn {
+    padding: 6px 14px;
+    border: 1px solid #dee2e6;
+    background: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+.pest-tool-btn:hover  { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+.pest-tool-btn.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+.pest-map-hint { font-size: 0.82rem; color: #95a5a6; display: flex; align-items: center; gap: 5px; }
+
+/* 地图图例 */
+.pest-map-legend {
+    position: absolute;
+    bottom: 30px;
+    right: 12px;
+    background: rgba(255,255,255,0.95);
+    padding: 12px 14px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+    z-index: 500;
+    font-size: 0.82rem;
+}
+
+.pest-legend-title { font-weight: 600; color: var(--dark-color); margin-bottom: 8px; font-size: 0.85rem; }
+.pest-legend-item  { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; color: #555; }
+
+.pest-dot {
+    width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0;
+    border: 2px solid rgba(255,255,255,0.8);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.15);
+}
+.pest-dot.severe   { background: #e74c3c; }
+.pest-dot.moderate { background: #f39c12; }
+.pest-dot.mild     { background: #3498db; }
+.pest-dot.healthy  { background: #2ecc71; }
+
+/* 病害图片画廊 */
+.pest-image-gallery {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+}
+
+.pest-image-card {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-top: 3px solid transparent;
+}
+.pest-image-card:hover { transform: translateY(-4px); box-shadow: 0 6px 18px rgba(0,0,0,0.15); }
+.pest-image-card.severe   { border-top-color: #e74c3c; }
+.pest-image-card.moderate { border-top-color: #f39c12; }
+.pest-image-card.mild     { border-top-color: #3498db; }
+
+.pest-image-card img {
+    width: 100%; height: 140px; object-fit: cover; display: block;
+    background: #e9ecef;
+}
+
+.pest-image-info { padding: 10px 12px; background: white; }
+
+.pest-image-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+.pest-image-tag.severe   { background: #fde8e8; color: #c0392b; }
+.pest-image-tag.moderate { background: #fff3cd; color: #856404; }
+.pest-image-tag.mild     { background: #d1ecf1; color: #0c5460; }
+
+.pest-image-name { font-weight: 600; color: var(--dark-color); font-size: 0.9rem; margin-bottom: 3px; }
+.pest-image-loc  { font-size: 0.8rem; color: #7f8c8d; display: flex; align-items: center; gap: 4px; }
+
+/* 右侧面板 */
+.pest-right-panel { display: flex; flex-direction: column; gap: 16px; }
+
+/* 预警列表 */
+.pest-alert-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; max-height: 280px; overflow-y: auto; }
+
+.pest-alert-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    border-left: 3px solid transparent;
+    transition: background 0.2s;
+}
+.pest-alert-item:hover { background: #f0f0f0; }
+.pest-alert-item.severe   { border-left-color: #e74c3c; }
+.pest-alert-item.moderate { border-left-color: #f39c12; }
+.pest-alert-item.mild     { border-left-color: #3498db; }
+
+.pest-alert-dot {
+    width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+}
+.pest-alert-dot.severe   { background: #e74c3c; box-shadow: 0 0 0 3px rgba(231,76,60,0.2); }
+.pest-alert-dot.moderate { background: #f39c12; box-shadow: 0 0 0 3px rgba(243,156,18,0.2); }
+.pest-alert-dot.mild     { background: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.2); }
+
+.pest-alert-content { flex: 1; min-width: 0; }
+.pest-alert-name { font-weight: 600; font-size: 0.88rem; color: var(--dark-color); margin-bottom: 2px; }
+.pest-alert-loc  { font-size: 0.8rem; color: #7f8c8d; margin-bottom: 1px; }
+.pest-alert-time { font-size: 0.75rem; color: #aaa; }
+
+.pest-alert-btn {
+    width: 30px; height: 30px; border: 1px solid #dee2e6; background: white;
+    border-radius: 6px; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; color: #555; flex-shrink: 0; transition: all 0.2s;
+}
+.pest-alert-btn:hover { background: var(--info-color); color: white; border-color: var(--info-color); }
+
+/* 防治建议 */
+.pest-treatment-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
+
+.pest-treatment-item { border-radius: 8px; overflow: hidden; border: 1px solid #e9ecef; }
+
+.pest-treatment-header {
+    padding: 8px 12px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    color: white;
+}
+.pest-treatment-header.severe   { background: #e74c3c; }
+.pest-treatment-header.moderate { background: #f39c12; }
+.pest-treatment-header.mild     { background: #3498db; }
+
+.pest-treatment-body {
+    padding: 10px 12px;
+    background: #fafafa;
+    font-size: 0.83rem;
+    line-height: 1.8;
+    color: #444;
+}
+.pest-treatment-body p { margin: 0; }
+
+/* ============================================
+   设备连接管理页面样式
+   ============================================ */
+
+/* 状态总览行 */
+.dc-stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.dc-stat-card {
+    background: white;
+    border-radius: 10px;
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    border-left: 4px solid transparent;
+}
+
+.dc-stat-card i { font-size: 2rem; }
+.dc-stat-card div { display: flex; flex-direction: column; }
+.dc-stat-num { font-size: 2rem; font-weight: 700; line-height: 1; }
+.dc-stat-label { font-size: 0.85rem; color: #7f8c8d; margin-top: 4px; }
+
+.dc-stat-connected { border-left-color: #2ecc71; }
+.dc-stat-connected i, .dc-stat-connected .dc-stat-num { color: #2ecc71; }
+.dc-stat-standby { border-left-color: #3498db; }
+.dc-stat-standby i, .dc-stat-standby .dc-stat-num { color: #3498db; }
+.dc-stat-offline { border-left-color: #95a5a6; }
+.dc-stat-offline i, .dc-stat-offline .dc-stat-num { color: #95a5a6; }
+.dc-stat-error { border-left-color: #e74c3c; }
+.dc-stat-error i, .dc-stat-error .dc-stat-num { color: #e74c3c; }
+
+/* 主布局 */
+.dc-main-layout {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+    align-items: start;
+}
+
+/* 设备列表面板 */
+.dc-device-list-panel {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+
+.dc-filter-bar {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.dc-filter-tabs {
+    display: flex;
+    gap: 4px;
+}
+
+.dc-tab {
+    padding: 6px 14px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.dc-tab:hover { background: #f0f0f0; }
+.dc-tab.active { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+.dc-brand-filter {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    margin-left: auto;
+}
+
+/* 设备卡片 */
+.dc-device-cards {
+    max-height: 620px;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dc-device-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    background: #f8f9fa;
+}
+
+.dc-device-card:hover { background: #eef2ff; border-color: #c5cae9; }
+.dc-device-card.selected { background: #eef2ff; border-color: var(--primary-color); }
+
+.dc-device-card.connected { border-left: 4px solid #2ecc71; }
+.dc-device-card.standby { border-left: 4px solid #3498db; }
+.dc-device-card.offline { border-left: 4px solid #95a5a6; opacity: 0.75; }
+.dc-device-card.error { border-left: 4px solid #e74c3c; }
+
+.dc-device-brand-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.dc-device-brand-badge.dji { background: #1a1a2e; color: #fff; }
+.dc-device-brand-badge.xag { background: #e74c3c; color: #fff; }
+.dc-device-brand-badge.huace { background: #2980b9; color: #fff; }
+.dc-device-brand-badge.autel { background: #e67e22; color: #fff; }
+.dc-device-brand-badge.custom { background: #8e44ad; color: #fff; }
+
+.dc-device-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.dc-device-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+.dc-device-info { flex: 1; min-width: 0; }
+
+.dc-device-name {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dc-sn {
+    font-size: 0.75rem;
+    color: #95a5a6;
+    font-weight: 400;
+    margin-left: 6px;
+}
+
+.dc-device-model {
+    font-size: 0.8rem;
+    color: #7f8c8d;
+    margin: 3px 0;
+}
+
+.dc-device-meta {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+
+.dc-device-meta span {
+    font-size: 0.78rem;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.dc-device-meta i { font-size: 0.75rem; color: var(--primary-color); }
+
+/* 状态徽章 */
+.dc-device-status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.dc-device-status-badge.connected { background: #d4edda; color: #155724; }
+.dc-device-status-badge.standby { background: #cce5ff; color: #004085; }
+.dc-device-status-badge.offline { background: #e9ecef; color: #6c757d; }
+.dc-device-status-badge.error { background: #f8d7da; color: #721c24; }
+
+/* 详情面板 */
+.dc-detail-panel {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    min-height: 500px;
+    overflow: hidden;
+}
+
+.dc-detail-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 400px;
+    color: #bdc3c7;
+    gap: 16px;
+}
+
+.dc-detail-placeholder i { font-size: 4rem; }
+.dc-detail-placeholder p { font-size: 1rem; }
+
+.dc-detail-content { padding: 24px; }
+
+.dc-detail-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.dc-detail-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+}
+
+.dc-detail-title { flex: 1; }
+.dc-detail-title h4 { font-size: 1.3rem; color: #2c3e50; margin-bottom: 4px; }
+.dc-detail-title p { color: #7f8c8d; font-size: 0.9rem; margin-bottom: 8px; }
+
+.dc-detail-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* 详情区块 */
+.dc-section { margin-bottom: 24px; }
+
+.dc-section-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.dc-section-title i { color: var(--primary-color); }
+
+/* 遥测数据网格 */
+.dc-telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+}
+
+.dc-telemetry-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    border-left: 3px solid var(--primary-color);
+}
+
+.dc-tele-label { font-size: 0.75rem; color: #7f8c8d; }
+.dc-tele-value { font-size: 1rem; font-weight: 700; color: #2c3e50; }
+
+/* 配置网格 */
+.dc-config-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.dc-config-item {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dc-config-label { font-size: 0.75rem; color: #7f8c8d; }
+.dc-config-value { font-size: 0.95rem; font-weight: 600; color: #2c3e50; }
+
+/* 连接方式 */
+.dc-conn-methods { display: flex; flex-direction: column; gap: 10px; }
+
+.dc-conn-method {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+}
+
+.dc-conn-method.active { background: #eaf7ef; border-color: #2ecc71; }
+
+.dc-conn-method i { font-size: 1.4rem; color: #95a5a6; width: 24px; text-align: center; }
+.dc-conn-method.active i { color: #2ecc71; }
+.dc-conn-method div { flex: 1; }
+.dc-conn-method strong { font-size: 0.9rem; color: #2c3e50; }
+.dc-conn-method p { font-size: 0.8rem; color: #7f8c8d; margin-top: 2px; }
+
+.dc-conn-status {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 10px;
+    background: #e9ecef;
+    color: #6c757d;
+}
+
+.dc-conn-method.active .dc-conn-status { background: #d4edda; color: #155724; }
+
+/* 协议支持面板 */
+.dc-protocol-panel {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    padding: 24px;
+}
+
+.dc-protocol-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dc-protocol-title i { color: var(--info-color); }
+
+.dc-protocol-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 14px;
+}
+
+.dc-protocol-item {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 16px;
+    border-top: 3px solid #ddd;
+}
+
+.dc-proto-brand {
+    font-size: 0.95rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.dji-color { color: #1a1a2e; }
+.xag-color { color: #e74c3c; }
+.huace-color { color: #2980b9; }
+.autel-color { color: #e67e22; }
+.mavlink-color { color: #27ae60; }
+.custom-color { color: #8e44ad; }
+
+.dc-proto-models {
+    font-size: 0.78rem;
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.dc-proto-conn { display: flex; flex-wrap: wrap; gap: 4px; }
+
+.dc-proto-tag {
+    background: #e9ecef;
+    color: #555;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.72rem;
+    font-weight: 500;
+}
+
+/* 弹窗 */
+.dc-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dc-modal {
+    background: white;
+    border-radius: 12px;
+    width: 480px;
+    max-width: 95vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    overflow: hidden;
+}
+
+.dc-modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dc-modal-header h4 {
+    font-size: 1.1rem;
+    color: #2c3e50;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.dc-modal-header h4 i { color: var(--primary-color); }
+
+.dc-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #7f8c8d;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.dc-modal-close:hover { background: #f0f0f0; }
+
+.dc-modal-body { padding: 24px; }
+
+.dc-modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
 }

@@ -44,12 +44,11 @@ function showPage(pageId, element) {
         'variable-fertilizer': '稻麦变量施肥',
         'variable-weeding': '变量除草',
         'cotton-control': '棉花化控',
-        'orchard-survey': '果园航测',
-        '3d-route': '平台三维航线',
-        'mountain-operation': '山地果园作业',
         'data-trace': '作业数据回溯',
         'realtime-monitor': '农机实时监管',
-        'quality-control': '作业质量监管'
+        'quality-control': '作业质量监管',
+        'pest-monitor': '病虫害监测',
+        'device-connect': '设备连接管理'
     };
 
     document.getElementById('page-title').textContent = titles[pageId] || '控制台';
@@ -69,9 +68,6 @@ function initializeCanvas(pageId) {
         'variable-fertilizer': 'prescriptionCanvas',
         'variable-weeding': 'weedCanvas',
         'cotton-control': 'cottonCanvas',
-        'orchard-survey': 'orchardCanvas',
-        '3d-route': 'route3DCanvas',
-        'mountain-operation': 'mountainCanvas',
         'realtime-monitor': 'realtimeCanvas'
     };
 
@@ -93,6 +89,11 @@ function initializeCanvas(pageId) {
     // 初始化出苗分析地图
     if (pageId === 'seedling') {
         initSeedlingMap();
+    }
+
+    // 初始化病虫害监测地图
+    if (pageId === 'pest-monitor') {
+        initPestMonitorMap();
     }
 }
 
@@ -132,8 +133,6 @@ function drawDemoCanvas(canvasId) {
         drawWeedMap(ctx, width, height);
     } else if (canvasId === 'cottonCanvas') {
         drawCottonMap(ctx, width, height);
-    } else if (canvasId === 'orchardCanvas' || canvasId === 'route3DCanvas' || canvasId === 'mountainCanvas') {
-        draw3DMap(ctx, width, height);
     } else if (canvasId === 'realtimeCanvas') {
         drawRealtimeMap(ctx, width, height);
     }
@@ -328,34 +327,6 @@ function drawWeedMap(ctx, width, height) {
 // 绘制棉花地图
 function drawCottonMap(ctx, width, height) {
     drawPrescriptionMap(ctx, width, height);
-}
-
-// 绘制3D地图
-function draw3DMap(ctx, width, height) {
-    // 绘制山地轮廓
-    ctx.fillStyle = 'rgba(139, 69, 19, 0.3)';
-    ctx.beginPath();
-    ctx.moveTo(0, height);
-    for (let x = 0; x < width; x += 20) {
-        const y = height - Math.sin(x / 100) * 150 - Math.random() * 50 - 200;
-        ctx.lineTo(x, y);
-    }
-    ctx.lineTo(width, height);
-    ctx.closePath();
-    ctx.fill();
-
-    // 绘制航线
-    ctx.strokeStyle = 'rgba(255, 255, 0, 0.8)';
-    ctx.lineWidth = 3;
-    ctx.setLineDash([10, 5]);
-    ctx.beginPath();
-    ctx.moveTo(50, height - 250);
-    for (let x = 50; x < width - 50; x += 50) {
-        const y = height - 250 - Math.sin(x / 100) * 50;
-        ctx.lineTo(x, y);
-    }
-    ctx.stroke();
-    ctx.setLineDash([]);
 }
 
 // 绘制实时监控地图
@@ -1196,23 +1167,6 @@ function generateWeedingPlan() {
 function generateCottonControl() {
     alert('正在生成化控方案...\n分析棉花株高差异');
     drawDemoCanvas('cottonCanvas');
-}
-
-// 果园航测功能
-function startOrchardSurvey() {
-    alert('开始果园航测...\n正在生成三维航测任务');
-    drawDemoCanvas('orchardCanvas');
-}
-
-// 三维航线功能
-function create3DRoute() {
-    alert('开始创建三维航线...\n请配置航线参数');
-}
-
-// 山地作业功能
-function startMountainOperation() {
-    alert('开始山地果园作业...\n设备正在执行三维航线');
-    drawDemoCanvas('mountainCanvas');
 }
 
 // 数据回溯功能
@@ -2904,4 +2858,599 @@ function switchPlanningMapLayer(layerType) {
     if (drawingLayer) {
         drawingLayer.bringToFront();
     }
+}
+
+
+// ============================================
+// 病虫害监测功能
+// ============================================
+
+let pestMap = null;
+let pestSatelliteLayer = null;
+let pestStreetLayer = null;
+let pestCurrentLayer = 'satellite';
+let pestMarkerGroup = null;
+let pestHeatGroup = null;
+let pestMarkersVisible = true;
+let pestHeatVisible = false;
+
+// 病虫害数据
+const pestData = [
+    { lat: 39.3312, lng: 117.7185, name: '稻飞虱', level: 'severe',  rate: 38, field: 'A区-01', area: '东北角' },
+    { lat: 39.3298, lng: 117.7172, name: '纹枯病',  level: 'severe',  rate: 31, field: 'A区-01', area: '中部'   },
+    { lat: 39.3305, lng: 117.7195, name: '稻飞虱', level: 'moderate', rate: 16, field: 'A区-01', area: '南侧'   },
+    { lat: 39.3386, lng: 117.6952, name: '稻瘟病', level: 'moderate', rate: 18, field: 'B区-01', area: '西侧'   },
+    { lat: 39.3375, lng: 117.6945, name: '二化螟', level: 'moderate', rate: 14, field: 'B区-01', area: '中部'   },
+    { lat: 39.3365, lng: 117.6960, name: '纹枯病', level: 'mild',     rate: 9,  field: 'B区-01', area: '东侧'   },
+    { lat: 39.3348, lng: 117.6845, name: '蚜虫',   level: 'mild',     rate: 8,  field: 'C区果园', area: '北区'  },
+    { lat: 39.3335, lng: 117.6835, name: '红蜘蛛', level: 'mild',     rate: 6,  field: 'C区果园', area: '南区'  },
+];
+
+const pestLevelColor = { severe: '#e74c3c', moderate: '#f39c12', mild: '#3498db', healthy: '#2ecc71' };
+const pestLevelLabel = { severe: '重度', moderate: '中度', mild: '轻度', healthy: '健康' };
+
+// 初始化病虫害监测地图
+function initPestMonitorMap() {
+    const container = document.getElementById('pest-monitor-map');
+    if (!container || pestMap) return;
+
+    if (typeof L === 'undefined') {
+        container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#e74c3c;">地图库加载失败，请检查网络连接</div>';
+        return;
+    }
+
+    try {
+        pestMap = L.map('pest-monitor-map').setView([39.3340, 117.7050], 14);
+
+        // 卫星图层
+        pestSatelliteLayer = L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            { attribution: 'Tiles © Esri', maxZoom: 19 }
+        ).addTo(pestMap);
+
+        // 街道图层（备用）
+        pestStreetLayer = L.tileLayer(
+            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            { attribution: '© OpenStreetMap contributors', maxZoom: 19 }
+        );
+
+        // 添加地块边界
+        addPestMapFields();
+
+        // 添加病虫害标记
+        pestMarkerGroup = L.layerGroup().addTo(pestMap);
+        pestHeatGroup  = L.layerGroup();
+        addPestMarkers();
+
+        console.log('✅ 病虫害监测地图初始化成功');
+    } catch (e) {
+        console.error('病虫害地图初始化失败:', e);
+    }
+}
+
+// 添加地块边界
+function addPestMapFields() {
+    const fields = [
+        {
+            name: 'A区-01号地块（水稻）', area: '45.6亩', color: '#2ecc71',
+            coords: [[39.331741,117.715416],[39.328522,117.715330],[39.328754,117.721381],[39.331542,117.721639]]
+        },
+        {
+            name: 'B区-01号地块（水稻）', area: '52.3亩', color: '#3498db',
+            coords: [[39.340571,117.693551],[39.336754,117.693400],[39.336604,117.696962],[39.340488,117.697070]]
+        },
+        {
+            name: 'C区果园', area: '28.5亩', color: '#f39c12',
+            coords: [[39.336770,117.681921],[39.333152,117.681684],[39.332953,117.687092],[39.336621,117.687328]]
+        }
+    ];
+
+    fields.forEach(f => {
+        L.polygon(f.coords, { color: f.color, fillColor: f.color, fillOpacity: 0.15, weight: 2 })
+            .addTo(pestMap)
+            .bindPopup(`<strong>${f.name}</strong><br>面积：${f.area}`);
+    });
+}
+
+// 添加病虫害标记
+function addPestMarkers() {
+    pestMarkerGroup.clearLayers();
+
+    pestData.forEach(p => {
+        const color = pestLevelColor[p.level];
+
+        // 外圈脉冲圆
+        const pulse = L.circleMarker([p.lat, p.lng], {
+            radius: p.level === 'severe' ? 22 : p.level === 'moderate' ? 17 : 13,
+            color: color, fillColor: color, fillOpacity: 0.15, weight: 1.5
+        }).addTo(pestMarkerGroup);
+
+        // 内圈实心点
+        const dot = L.circleMarker([p.lat, p.lng], {
+            radius: p.level === 'severe' ? 9 : p.level === 'moderate' ? 7 : 5,
+            color: '#fff', fillColor: color, fillOpacity: 0.95, weight: 2
+        }).addTo(pestMarkerGroup);
+
+        const popupHtml = `
+            <div style="min-width:180px;">
+                <div style="background:${color};color:#fff;padding:6px 10px;border-radius:4px 4px 0 0;font-weight:bold;">
+                    <i class="fas fa-bug"></i> ${p.name} — ${pestLevelLabel[p.level]}
+                </div>
+                <div style="padding:8px 10px;font-size:0.88rem;line-height:1.7;">
+                    <div>📍 ${p.field} · ${p.area}</div>
+                    <div>📊 发病率：<strong style="color:${color}">${p.rate}%</strong></div>
+                </div>
+            </div>`;
+        dot.bindPopup(popupHtml, { maxWidth: 220 });
+        pulse.bindPopup(popupHtml, { maxWidth: 220 });
+    });
+}
+
+// 添加热力图（用矩形色块模拟）
+function addPestHeatmap() {
+    pestHeatGroup.clearLayers();
+    pestData.forEach(p => {
+        const color = pestLevelColor[p.level];
+        const size = p.level === 'severe' ? 0.0018 : p.level === 'moderate' ? 0.0013 : 0.0009;
+        L.rectangle(
+            [[p.lat - size, p.lng - size * 1.5], [p.lat + size, p.lng + size * 1.5]],
+            { color: color, fillColor: color, fillOpacity: 0.35, weight: 0 }
+        ).addTo(pestHeatGroup);
+    });
+}
+
+// 切换地图图层
+function switchPestMapLayer(type) {
+    if (!pestMap) return;
+    if (type === 'satellite') {
+        if (!pestMap.hasLayer(pestSatelliteLayer)) pestSatelliteLayer.addTo(pestMap);
+        if (pestMap.hasLayer(pestStreetLayer)) pestMap.removeLayer(pestStreetLayer);
+        document.getElementById('pestLayerSatellite').classList.add('active');
+        document.getElementById('pestLayerStreet').classList.remove('active');
+    } else {
+        if (!pestMap.hasLayer(pestStreetLayer)) pestStreetLayer.addTo(pestMap);
+        if (pestMap.hasLayer(pestSatelliteLayer)) pestMap.removeLayer(pestSatelliteLayer);
+        document.getElementById('pestLayerStreet').classList.add('active');
+        document.getElementById('pestLayerSatellite').classList.remove('active');
+    }
+    pestCurrentLayer = type;
+}
+
+// 切换热力图
+function togglePestHeatmap() {
+    if (!pestMap) return;
+    pestHeatVisible = !pestHeatVisible;
+    const btn = document.getElementById('pestHeatmapBtn');
+    if (pestHeatVisible) {
+        addPestHeatmap();
+        pestHeatGroup.addTo(pestMap);
+        btn.classList.add('active');
+        showNotification('热力图已开启', 'info');
+    } else {
+        pestMap.removeLayer(pestHeatGroup);
+        btn.classList.remove('active');
+        showNotification('热力图已关闭', 'info');
+    }
+}
+
+// 切换标记点
+function togglePestMarkers() {
+    if (!pestMap) return;
+    pestMarkersVisible = !pestMarkersVisible;
+    const btn = document.getElementById('pestMarkersBtn');
+    if (pestMarkersVisible) {
+        pestMarkerGroup.addTo(pestMap);
+        btn.classList.add('active');
+    } else {
+        pestMap.removeLayer(pestMarkerGroup);
+        btn.classList.remove('active');
+    }
+}
+
+// 定位到某个病虫害点
+function locatePest(lat, lng) {
+    if (!pestMap) return;
+    pestMap.setView([lat, lng], 17, { animate: true });
+    showNotification('已定位到病虫害位置', 'info');
+}
+
+// 开始扫描
+function startPestScan() {
+    if (!pestMap) {
+        initPestMonitorMap();
+        setTimeout(() => showNotification('地图加载完成，正在执行AI扫描...', 'info'), 600);
+        setTimeout(() => showNotification('扫描完成！共发现 22 处病虫害预警', 'success'), 2200);
+        return;
+    }
+    showNotification('正在执行AI病虫害扫描...', 'info');
+    setTimeout(() => {
+        addPestMarkers();
+        showNotification('扫描完成！共发现 22 处病虫害预警', 'success');
+    }, 1800);
+}
+
+// 查看详情
+function viewPestDetail(name, field) {
+    const info = {
+        '稻飞虱':    { drug: '吡蚜酮 25% WP，20g/亩', timing: '傍晚施药，避免高温', note: '重点喷施叶背面' },
+        '纹枯病':    { drug: '井冈霉素 5% AS，100mL/亩', timing: '3天内完成', note: '重点喷施茎基部' },
+        '稻瘟病':    { drug: '三环唑 75% WP，30g/亩', timing: '连阴雨后及时施药', note: '叶瘟、穗颈瘟均需防治' },
+        '二化螟':    { drug: '氯虫苯甲酰胺 20% SC，10mL/亩', timing: '卵孵高峰期施药', note: '注意安全间隔期' },
+        '蚜虫':      { drug: '啶虫脒 20% SP，10g/亩', timing: '发生初期施药', note: '注意保护天敌' },
+        '红蜘蛛':    { drug: '阿维菌素 1.8% EC，30mL/亩', timing: '点片发生时施药', note: '叶背面均匀喷雾' },
+        '小麦条锈病':{ drug: '戊唑醇 25% WP，30g/亩', timing: '发病初期施药', note: '连续阴雨天气注意预防' },
+    };
+    const d = info[name] || { drug: '请咨询农技专家', timing: '尽快处理', note: '—' };
+    alert(`📋 病虫害详情\n\n病害名称：${name}\n发生地块：${field}\n\n💊 推荐药剂：${d.drug}\n⏰ 施药时机：${d.timing}\n⚠️ 注意事项：${d.note}`);
+}
+
+// 生成完整防治方案
+function generatePestPlan() {
+    showNotification('正在生成防治方案...', 'info');
+    setTimeout(() => {
+        alert(`📋 病虫害综合防治方案\n\n监测日期：2025-04-27\n监测地块：全部（128块）\n\n🔴 紧急处理（今日）：\n  · A区-01 稻飞虱（38%）→ 吡蚜酮 25% WP\n  · A区-01 纹枯病（31%）→ 井冈霉素 5% AS\n\n🟡 3天内处理：\n  · B区-01 稻瘟病（18%）→ 三环唑 75% WP\n  · B区-01 二化螟（14%）→ 氯虫苯甲酰胺\n\n🔵 持续观察：\n  · C区果园 蚜虫（8%）→ 啶虫脒 20% SP\n  · C区果园 红蜘蛛（6%）→ 阿维菌素\n\n💰 预估防治成本：¥4,280\n📅 建议作业时间：今日 18:00 开始`);
+        showNotification('防治方案已生成', 'success');
+    }, 1200);
+}
+
+// 导出报告
+function exportPestReport() {
+    showNotification('正在生成报告...', 'info');
+    setTimeout(() => {
+        alert('报告已导出！\n\n文件名：病虫害监测报告_' + new Date().toISOString().split('T')[0] + '.pdf\n\n报告包含：\n- 病虫害分布地图\n- 各地块发病率统计\n- AI防治建议\n- 用药成本预算');
+        showNotification('报告导出成功！', 'success');
+    }, 1000);
+}
+
+// ============================================
+// 设备连接管理
+// ============================================
+
+// 设备数据库
+const deviceDatabase = {
+    'dji-t40-01': {
+        name: '道通 EVO Max 4T', model: '农业植保无人机 · 40L载药量', brand: 'dji', status: 'connected',
+        sn: 'AUTEL-EVO-A001', icon: 'fa-helicopter',
+        telemetry: { lat: '39.3301°N', lng: '117.7185°E', alt: '8.5 m', speed: '6.2 m/s', battery: '87%', liquid: '32.5 L', signal: '强 (-62dBm)', flightStatus: '作业中', area: '12.3 亩', time: '00:18:42' },
+        config: { '最大载药量': '40 L', '喷幅': '9 m', '作业速度': '7 m/s', '飞行高度': '1.5~3 m', '定位方式': 'RTK+GPS', '图传距离': '7 km', '防护等级': 'IP67', '电池容量': '30000 mAh' },
+        connMethods: [{ type: 'Autel SDK', icon: 'fa-mobile-alt', desc: '通过道通遥控器 USB 连接', active: true }, { type: '4G 图传', icon: 'fa-signal', desc: '道通农业 4G 图传模块', active: false }],
+        history: [
+            { date: '2025-04-27', field: 'A区-01', type: '变量施肥', area: '45.6亩', status: 'completed' },
+            { date: '2025-04-26', field: 'B区-01', type: '病虫害防治', area: '32.8亩', status: 'completed' },
+            { date: '2025-04-25', field: 'A区-02', type: '变量施肥', area: '38.2亩', status: 'completed' }
+        ]
+    },
+    'dji-t10-02': {
+        name: '道通 Dragonfish Pro', model: '农业植保无人机 · 10L载药量', brand: 'dji', status: 'connected',
+        sn: 'AUTEL-DF-B002', icon: 'fa-helicopter',
+        telemetry: { lat: '39.3285°N', lng: '117.7213°E', alt: '2.0 m', speed: '4.5 m/s', battery: '52%', liquid: '6.8 L', signal: '中 (-75dBm)', flightStatus: '作业中', area: '8.7 亩', time: '00:12:05' },
+        config: { '最大载药量': '10 L', '喷幅': '5 m', '作业速度': '6 m/s', '飞行高度': '1.5~3 m', '定位方式': 'GPS', '图传距离': '5 km', '防护等级': 'IP67', '电池容量': '12000 mAh' },
+        connMethods: [{ type: 'Autel SDK', icon: 'fa-mobile-alt', desc: '通过道通遥控器 USB 连接', active: true }],
+        history: [
+            { date: '2025-04-27', field: 'B区-01', type: '除草作业', area: '28.3亩', status: 'completed' },
+            { date: '2025-04-24', field: 'C区果园', type: '病虫害防治', area: '15.6亩', status: 'completed' }
+        ]
+    },
+    'xag-p100-01': {
+        name: '极飞 P100 Pro', model: '农业无人机 · 多光谱版', brand: 'xag', status: 'connected',
+        sn: 'XAG-P100-C003', icon: 'fa-helicopter',
+        telemetry: { lat: '39.3315°N', lng: '117.7162°E', alt: '50.0 m', speed: '12.0 m/s', battery: '96%', liquid: '-- L', signal: '强 (-58dBm)', flightStatus: '航测中', area: '22.1 亩', time: '00:08:30' },
+        config: { '最大载重': '10 kg', '多光谱镜头': '5波段', '作业速度': '15 m/s', '飞行高度': '30~120 m', '定位方式': 'RTK', '图传距离': '5 km', '防护等级': 'IP54', '电池容量': '28000 mAh' },
+        connMethods: [{ type: 'XAG API', icon: 'fa-cloud', desc: '极飞云平台 API 接入', active: true }, { type: '4G/5G', icon: 'fa-signal', desc: '极飞 4G 图传模块', active: true }],
+        history: [
+            { date: '2025-04-27', field: 'C区果园', type: '多光谱航测', area: '28.5亩', status: 'completed' },
+            { date: '2025-04-26', field: 'A区-01', type: '长势监测', area: '45.6亩', status: 'completed' }
+        ]
+    },
+    'dji-m300-01': {
+        name: '道通 EVO II Pro', model: '测绘无人机 · 双云台', brand: 'dji', status: 'standby',
+        sn: 'AUTEL-EVO2-D004', icon: 'fa-drone',
+        telemetry: { lat: '39.3301°N', lng: '117.7185°E', alt: '0 m', speed: '0 m/s', battery: '100%', liquid: '-- L', signal: '强 (-60dBm)', flightStatus: '待机', area: '0 亩', time: '00:00:00' },
+        config: { '最大载重': '2.7 kg', '云台接口': '双下置', '最大速度': '23 m/s', '最大飞行时间': '55 min', '定位方式': 'RTK+GPS', '图传距离': '15 km', '防护等级': 'IP45', '电池容量': '5935 mAh×2' },
+        connMethods: [{ type: 'Autel SDK (MSDK)', icon: 'fa-laptop', desc: '通过道通 MSDK 接入', active: true }, { type: '4G 图传', icon: 'fa-signal', desc: '道通 4G 图传模块', active: false }],
+        history: [
+            { date: '2025-04-25', field: 'A区全域', type: '正射影像采集', area: '128亩', status: 'completed' },
+            { date: '2025-04-20', field: 'C区果园', type: '三维建模', area: '28.5亩', status: 'completed' }
+        ]
+    },
+    'huace-ag600-01': {
+        name: '华测 AG-600', model: '农业植保无人机 · 60L载药量', brand: 'huace', status: 'standby',
+        sn: 'HC-AG600-E005', icon: 'fa-helicopter',
+        telemetry: { lat: '39.3301°N', lng: '117.7185°E', alt: '0 m', speed: '0 m/s', battery: '78%', liquid: '60.0 L', signal: '中 (-72dBm)', flightStatus: '待机', area: '0 亩', time: '00:00:00' },
+        config: { '最大载药量': '60 L', '喷幅': '12 m', '作业速度': '8 m/s', '飞行高度': '1.5~5 m', '定位方式': 'RTK+北斗', '图传距离': '5 km', '防护等级': 'IP67', '电池容量': '40000 mAh' },
+        connMethods: [{ type: 'MAVLink', icon: 'fa-code', desc: 'MAVLink v2 协议 UDP 连接', active: true }, { type: '4G', icon: 'fa-signal', desc: '华测 4G 数传模块', active: true }],
+        history: [
+            { date: '2025-04-24', field: 'A区-01', type: '大面积施肥', area: '45.6亩', status: 'completed' }
+        ]
+    },
+    'autel-evo-01': {
+        name: '道通 EVO Max 4T', model: '多功能无人机 · 热成像版', brand: 'autel', status: 'offline',
+        sn: 'AT-EVO-F006', icon: 'fa-drone',
+        telemetry: { lat: '--', lng: '--', alt: '-- m', speed: '-- m/s', battery: '--%', liquid: '-- L', signal: '无信号', flightStatus: '离线', area: '-- 亩', time: '--' },
+        config: { '最大载重': '1.35 kg', '热成像分辨率': '640×512', '最大速度': '20 m/s', '最大飞行时间': '42 min', '定位方式': 'GPS+GLONASS', '图传距离': '20 km', '防护等级': 'IP43', '电池容量': '7100 mAh' },
+        connMethods: [{ type: 'Autel SDK', icon: 'fa-mobile-alt', desc: '通过 Autel SDK 接入', active: false }, { type: '4G', icon: 'fa-signal', desc: '道通 4G 图传', active: false }],
+        history: [
+            { date: '2025-04-22', field: 'B区-01', type: '热成像巡检', area: '32.8亩', status: 'completed' }
+        ]
+    },
+    'xag-v50-01': {
+        name: '极飞 V50', model: '农业植保无人机 · 50L载药量', brand: 'xag', status: 'error',
+        sn: 'XAG-V50-G007', icon: 'fa-helicopter',
+        telemetry: { lat: '39.3298°N', lng: '117.7190°E', alt: '0 m', speed: '0 m/s', battery: '12%', liquid: '48.0 L', signal: '弱 (-88dBm)', flightStatus: '故障停机', area: '3.2 亩', time: '00:04:15' },
+        config: { '最大载药量': '50 L', '喷幅': '10 m', '作业速度': '7 m/s', '飞行高度': '1.5~3 m', '定位方式': 'RTK', '图传距离': '5 km', '防护等级': 'IP67', '电池容量': '36000 mAh' },
+        connMethods: [{ type: 'XAG API', icon: 'fa-cloud', desc: '极飞云平台 API 接入', active: true }],
+        history: [
+            { date: '2025-04-27', field: 'A区-02', type: '变量施肥（中断）', area: '3.2亩', status: 'warning' }
+        ]
+    }
+};
+
+let currentDeviceId = null;
+let telemetryTimer = null;
+let currentFilter = 'all';
+let currentBrand = 'all';
+
+// 选中设备，显示详情
+function selectDevice(deviceId) {
+    currentDeviceId = deviceId;
+    const device = deviceDatabase[deviceId];
+    if (!device) return;
+
+    // 高亮选中卡片
+    document.querySelectorAll('.dc-device-card').forEach(c => c.classList.remove('selected'));
+    const card = document.querySelector(`[data-id="${deviceId}"]`);
+    if (card) card.classList.add('selected');
+
+    // 显示详情面板
+    document.getElementById('dcDetailPlaceholder').style.display = 'none';
+    document.getElementById('dcDetailContent').style.display = 'block';
+
+    // 填充基本信息
+    document.getElementById('dcDetailName').textContent = device.name;
+    document.getElementById('dcDetailModel').textContent = device.model;
+    document.getElementById('dcDetailIcon').innerHTML = `<i class="fas ${device.icon}"></i>`;
+
+    const statusBadge = document.getElementById('dcDetailStatusBadge');
+    const statusMap = { connected: '已连接', standby: '待机中', offline: '离线', error: '故障' };
+    statusBadge.textContent = statusMap[device.status] || device.status;
+    statusBadge.className = `dc-device-status-badge ${device.status}`;
+
+    const connectBtn = document.getElementById('dcConnectBtn');
+    if (device.status === 'connected' || device.status === 'standby') {
+        connectBtn.innerHTML = '<i class="fas fa-unlink"></i> 断开连接';
+        connectBtn.className = 'btn-danger btn-small';
+    } else {
+        connectBtn.innerHTML = '<i class="fas fa-plug"></i> 连接设备';
+        connectBtn.className = 'btn-primary btn-small';
+    }
+
+    // 填充遥测数据
+    const t = device.telemetry;
+    document.getElementById('dcTeleLat').textContent = t.lat;
+    document.getElementById('dcTeleLng').textContent = t.lng;
+    document.getElementById('dcTeleAlt').textContent = t.alt;
+    document.getElementById('dcTeleSpeed').textContent = t.speed;
+    document.getElementById('dcTeleBattery').textContent = t.battery;
+    document.getElementById('dcTeleLiquid').textContent = t.liquid;
+    document.getElementById('dcTeleSignal').textContent = t.signal;
+    document.getElementById('dcTeleFlightStatus').textContent = t.flightStatus;
+    document.getElementById('dcTeleArea').textContent = t.area;
+    document.getElementById('dcTeleTime').textContent = t.time;
+
+    // 填充配置信息
+    const configGrid = document.getElementById('dcConfigGrid');
+    configGrid.innerHTML = Object.entries(device.config).map(([k, v]) => `
+        <div class="dc-config-item">
+            <span class="dc-config-label">${k}</span>
+            <span class="dc-config-value">${v}</span>
+        </div>
+    `).join('');
+
+    // 填充连接方式
+    const connMethods = document.getElementById('dcConnMethods');
+    connMethods.innerHTML = device.connMethods.map(m => `
+        <div class="dc-conn-method ${m.active ? 'active' : ''}">
+            <i class="fas ${m.icon}"></i>
+            <div>
+                <strong>${m.type}</strong>
+                <p>${m.desc}</p>
+            </div>
+            <span class="dc-conn-status">${m.active ? '已启用' : '未启用'}</span>
+        </div>
+    `).join('');
+
+    // 填充历史记录
+    const historyBody = document.getElementById('dcHistoryBody');
+    const statusLabels = { completed: '<span class="status completed">已完成</span>', warning: '<span class="status warning">中断</span>' };
+    historyBody.innerHTML = device.history.map(h => `
+        <tr>
+            <td>${h.date}</td>
+            <td>${h.field}</td>
+            <td>${h.type}</td>
+            <td>${h.area}</td>
+            <td>${statusLabels[h.status] || h.status}</td>
+        </tr>
+    `).join('');
+
+    // 如果是已连接设备，启动实时数据模拟
+    if (telemetryTimer) clearInterval(telemetryTimer);
+    if (device.status === 'connected') {
+        startTelemetrySimulation(device);
+    }
+}
+
+// 模拟实时遥测数据更新
+function startTelemetrySimulation(device) {
+    let seconds = parseTimeToSeconds(device.telemetry.time);
+    let area = parseFloat(device.telemetry.area) || 0;
+    let battery = parseInt(device.telemetry.battery) || 80;
+
+    telemetryTimer = setInterval(() => {
+        if (currentDeviceId !== device.sn.replace(/[^a-z0-9-]/gi, '').toLowerCase() &&
+            !document.getElementById('dcDetailContent').style.display !== 'none') {
+            // 仍然更新
+        }
+        seconds++;
+        area += 0.002;
+        if (battery > 5) battery -= 0.01;
+
+        const h = String(Math.floor(seconds / 3600)).padStart(2, '0');
+        const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, '0');
+        const s = String(seconds % 60).padStart(2, '0');
+
+        const altEl = document.getElementById('dcTeleAlt');
+        const speedEl = document.getElementById('dcTeleSpeed');
+        const areaEl = document.getElementById('dcTeleArea');
+        const timeEl = document.getElementById('dcTeleTime');
+        const battEl = document.getElementById('dcTeleBattery');
+
+        if (altEl) altEl.textContent = (parseFloat(device.telemetry.alt) + (Math.random() - 0.5) * 0.3).toFixed(1) + ' m';
+        if (speedEl) speedEl.textContent = (parseFloat(device.telemetry.speed) + (Math.random() - 0.5) * 0.5).toFixed(1) + ' m/s';
+        if (areaEl) areaEl.textContent = area.toFixed(2) + ' 亩';
+        if (timeEl) timeEl.textContent = `${h}:${m}:${s}`;
+        if (battEl) battEl.textContent = battery.toFixed(0) + '%';
+    }, 1000);
+}
+
+function parseTimeToSeconds(timeStr) {
+    if (!timeStr || timeStr === '--') return 0;
+    const parts = timeStr.split(':').map(Number);
+    return parts[0] * 3600 + parts[1] * 60 + parts[2];
+}
+
+// 切换连接状态
+function toggleDeviceConnection() {
+    if (!currentDeviceId) return;
+    const device = deviceDatabase[currentDeviceId];
+    if (!device) return;
+
+    if (device.status === 'connected' || device.status === 'standby') {
+        device.status = 'offline';
+        showNotification(`已断开 ${device.name} 的连接`, 'warning');
+        if (telemetryTimer) { clearInterval(telemetryTimer); telemetryTimer = null; }
+    } else if (device.status === 'offline') {
+        showNotification(`正在连接 ${device.name}...`, 'info');
+        setTimeout(() => {
+            device.status = 'standby';
+            showNotification(`${device.name} 连接成功！`, 'success');
+            selectDevice(currentDeviceId);
+            updateDeviceCard(currentDeviceId);
+            updateStatusCounts();
+        }, 1500);
+        return;
+    } else if (device.status === 'error') {
+        showNotification(`设备故障，请先排查后再连接`, 'warning');
+        return;
+    }
+
+    selectDevice(currentDeviceId);
+    updateDeviceCard(currentDeviceId);
+    updateStatusCounts();
+}
+
+// 更新设备卡片状态
+function updateDeviceCard(deviceId) {
+    const device = deviceDatabase[deviceId];
+    const card = document.querySelector(`[data-id="${deviceId}"]`);
+    if (!card || !device) return;
+
+    card.className = `dc-device-card ${device.status}`;
+    card.dataset.status = device.status;
+
+    const badge = card.querySelector('.dc-device-status-badge');
+    const statusMap = { connected: '已连接', standby: '待机中', offline: '离线', error: '故障' };
+    if (badge) {
+        badge.textContent = statusMap[device.status];
+        badge.className = `dc-device-status-badge ${device.status}`;
+    }
+}
+
+// 更新状态计数
+function updateStatusCounts() {
+    const counts = { connected: 0, standby: 0, offline: 0, error: 0 };
+    Object.values(deviceDatabase).forEach(d => { if (counts[d.status] !== undefined) counts[d.status]++; });
+    document.getElementById('dc-count-connected').textContent = counts.connected;
+    document.getElementById('dc-count-standby').textContent = counts.standby;
+    document.getElementById('dc-count-offline').textContent = counts.offline;
+    document.getElementById('dc-count-error').textContent = counts.error;
+}
+
+// 筛选设备
+function filterDevices(status, btn) {
+    currentFilter = status;
+    document.querySelectorAll('.dc-tab').forEach(t => t.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    applyDeviceFilter();
+}
+
+function filterByBrand(brand) {
+    currentBrand = brand;
+    applyDeviceFilter();
+}
+
+function applyDeviceFilter() {
+    document.querySelectorAll('.dc-device-card').forEach(card => {
+        const matchStatus = currentFilter === 'all' || card.dataset.status === currentFilter;
+        const matchBrand = currentBrand === 'all' || card.dataset.brand === currentBrand;
+        card.style.display = (matchStatus && matchBrand) ? 'flex' : 'none';
+    });
+}
+
+// 扫描设备
+function scanDevices() {
+    showNotification('正在扫描局域网内的设备...', 'info');
+    setTimeout(() => {
+        showNotification('扫描完成，共发现 7 台设备', 'success');
+    }, 2000);
+}
+
+// 打开添加设备弹窗
+function openAddDeviceModal() {
+    document.getElementById('dcAddModal').style.display = 'flex';
+}
+
+function closeAddDeviceModal(event) {
+    if (!event || event.target === document.getElementById('dcAddModal')) {
+        document.getElementById('dcAddModal').style.display = 'none';
+    }
+}
+
+function updateAddDeviceProtocol() {
+    const brand = document.getElementById('addDeviceBrand').value;
+    const protocolSelect = document.getElementById('addDeviceProtocol');
+    const protocolMap = {
+        dji: ['DJI SDK (USB/Wi-Fi)', '4G 图传'],
+        xag: ['XAG API', '4G/5G'],
+        huace: ['MAVLink UDP', 'MAVLink TCP', '4G'],
+        autel: ['Autel SDK', '4G'],
+        mavlink: ['MAVLink UDP', 'MAVLink TCP', '串口'],
+        custom: ['MQTT', 'WebSocket', 'REST API', 'MAVLink UDP']
+    };
+    const options = protocolMap[brand] || ['MAVLink UDP'];
+    protocolSelect.innerHTML = options.map(o => `<option>${o}</option>`).join('');
+}
+
+function confirmAddDevice() {
+    const brand = document.getElementById('addDeviceBrand').value;
+    const model = document.getElementById('addDeviceModel').value || '未知型号';
+    const sn = document.getElementById('addDeviceSN').value || 'SN-' + Date.now();
+    const alias = document.getElementById('addDeviceAlias').value;
+
+    const brandNames = { dji: '道通', xag: '极飞', huace: '华测', autel: '道通', mavlink: 'MAVLink', custom: '自定义' };
+    const displayName = alias || `${brandNames[brand]} ${model}`;
+
+    showNotification(`正在连接 ${displayName}...`, 'info');
+    document.getElementById('dcAddModal').style.display = 'none';
+
+    setTimeout(() => {
+        showNotification(`${displayName} 连接成功！`, 'success');
+        updateStatusCounts();
+    }, 2000);
+}
+
+// 打开设备配置
+function openDeviceConfig() {
+    if (!currentDeviceId) return;
+    const device = deviceDatabase[currentDeviceId];
+    showNotification(`正在打开 ${device.name} 的配置界面...`, 'info');
 }
